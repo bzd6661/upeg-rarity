@@ -1,0 +1,40 @@
+name: Refresh data
+
+on:
+  schedule:
+    - cron: "0 * * * *"  # hourly
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install pipeline
+        run: pip install -r requirements.txt
+
+      - name: Run pipeline
+        env:
+          RPC_URLS: ${{ secrets.RPC_URLS || 'https://ethereum-rpc.publicnode.com,https://eth.drpc.org,https://eth.merkle.io,https://1rpc.io/eth' }}
+        run: python -m pipeline
+
+      - name: Commit data if changed
+        run: |
+          git config user.name "upeg-rarity-bot"
+          git config user.email "actions@github.com"
+          if [[ -n "$(git status --porcelain data/)" ]]; then
+            git add data/
+            git commit -m "data: hourly refresh $(date -u +%FT%TZ)"
+            git push
+          else
+            echo "No data changes"
+          fi
