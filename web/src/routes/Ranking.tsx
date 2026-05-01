@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { FixedSizeList as List } from "react-window";
 import { TraitFilters } from "../components/TraitFilters";
@@ -7,6 +7,14 @@ import { applyFilters, searchById, sortByRank, type TraitFilter } from "../lib/f
 import type { DataBundle } from "../types";
 
 const FOLLOWED_KEY = "upeg-rarity:follow-prompted-v2";
+
+// Subtract reserved height for header + page padding + filters/search + status line
+const RESERVED_VERTICAL_PX = 240;
+
+function computeListHeight() {
+  if (typeof window === "undefined") return 600;
+  return Math.max(400, window.innerHeight - RESERVED_VERTICAL_PX);
+}
 
 interface Props {
   bundle: DataBundle;
@@ -21,7 +29,14 @@ function rankColor(rank: number): string {
 export function Ranking({ bundle }: Props) {
   const [filter, setFilter] = useState<TraitFilter>({});
   const [query, setQuery] = useState("");
+  const [listHeight, setListHeight] = useState(computeListHeight);
   const [showFollow, setShowFollow] = useState(false);
+
+  useEffect(() => {
+    const onResize = () => setListHeight(computeListHeight());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const handleSearchFocus = () => {
     if (typeof window === "undefined") return;
@@ -40,7 +55,7 @@ export function Ranking({ bundle }: Props) {
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-      <aside className="lg:sticky lg:top-[65px] lg:self-start">
+      <aside className="lg:sticky lg:top-[65px] lg:self-start max-h-[calc(100vh-100px)] overflow-y-auto pr-1">
         {/* Search box */}
         <div className="relative mb-4">
           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
@@ -62,7 +77,7 @@ export function Ranking({ bundle }: Props) {
         <p className="mb-3 text-xs font-medium text-zinc-500">
           Showing {filtered.length} of {bundle.upegs.total_minted}
         </p>
-        <List height={600} itemCount={filtered.length} itemSize={88} width="100%">
+        <List height={listHeight} itemCount={filtered.length} itemSize={88} width="100%">
           {({ index, style }) => {
             const item = filtered[index];
             const isTop10 = item.rank <= 10;
