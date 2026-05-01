@@ -2,6 +2,11 @@
 
 For each token: score = Σ_t  weight_t × −log2( freq(token.traits[t]) )
 Higher score = rarer. Ranks are dense (ties share a rank, next rank skips).
+
+For some traits we override the IC formula with explicit value-based bonuses
+(see TRAIT_VALUE_BONUS) — used when the rarity semantics aren't symmetric
+in frequency (e.g., low color counts are valued more than high color counts
+even when both are equally uncommon).
 """
 from __future__ import annotations
 
@@ -9,26 +14,41 @@ import math
 from collections import Counter
 from typing import Any
 
+
 # Per-trait weight overrides for IC scoring. Default is 1.0 for any trait
 # not listed here. Weight 0.0 means the trait is excluded from rarity scoring
 # entirely (still counted in stats.json frequencies for the UI).
 #
-# Rationale:
-#   - The 8 color slots have weight 0 because individual color choices are not
-#     intrinsically rare — color rarity is captured by n_distinct_colors instead.
-#   - n_distinct_colors has weight 5.0 because color diversity is a holistic
-#     meta-property: a 2-color NFT (0.23% of supply) is aesthetically much rarer
-#     than a single uncommon shape value, so we boost its IC contribution.
+# Color slots have weight 0 because individual color choices are not
+# intrinsically rare — color rarity is captured by n_distinct_colors via
+# TRAIT_VALUE_BONUS instead.
 TRAIT_WEIGHTS: dict[str, float] = {
     "backGroundColor": 0.0,
     "bodyColor": 0.0,
     "hornColor": 0.0,
-    "wingsColor": 0.0,
+    "eyesColor": 0.0,
     "tailColor": 0.0,
     "hairColor": 0.0,
+    "groundColor": 0.0,
     "accessoriesColor": 0.0,
-    "eyesColor": 0.0,
-    "n_distinct_colors": 5.0,
+    # n_distinct_colors uses TRAIT_VALUE_BONUS instead of weighted IC
+    "n_distinct_colors": 0.0,
+}
+
+
+# Value-based score overrides. When a trait appears as a key here, its IC
+# contribution comes from this lookup keyed by the observed value, NOT from
+# -log2(p). Values not listed in the inner dict contribute 0.
+#
+# n_distinct_colors: low color counts (2, 3) and "full spectrum" (7) get
+# explicit boosts. Middle values (4, 5, 6) are unremarkable and contribute 0.
+TRAIT_VALUE_BONUS: dict[str, dict[Any, float]] = {
+    "n_distinct_colors": {
+        2: 50.0,  # bichrome — rarest pattern, top tier
+        3: 30.0,  # tri-chrome — second tier
+        7: 15.0,  # full spectrum — third tier (some boost, less than 3)
+        # 4, 5, 6 → no bonus (middle values are unremarkable)
+    },
 }
 
 
@@ -53,6 +73,11 @@ def compute_information_content(
 ) -> float:
     score = 0.0
     for k, v in traits.items():
+        # Value-based bonus override (if any)
+        if k in TRAIT_VALUE_BONUS:
+            score += TRAIT_VALUE_BONUS[k].get(v, 0.0)
+            continue
+        # Standard weighted IC
         weight = TRAIT_WEIGHTS.get(k, 1.0)
         if weight == 0:
             continue
