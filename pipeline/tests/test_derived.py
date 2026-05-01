@@ -24,13 +24,13 @@ def test_count_svg_colors_empty():
 
 def test_has_present_when_value_nonzero():
     traits = {
-        "horn": 5, "wings": 0, "legsBack": 0,
+        "horn": 5, "wings": 0, "tail": 3,
         "accessories": 2, "hair": 0,
     }
     out = add_derived_traits(traits, svg="<svg><rect fill='#aaa'/></svg>")
     assert out["has_horn"] == 1
     assert out["has_wings"] == 0
-    assert out["has_legsBack"] == 0
+    assert out["has_tail"] == 1
     assert out["has_hair"] == 0
     assert out["has_accessories"] == 1
 
@@ -62,4 +62,4 @@ def test_preserves_existing_traits():
 
 
 def test_constants_stable():
-    assert PRESENCE_TRAITS == ("horn", "wings", "legsBack", "hair", "accessories")
+    assert PRESENCE_TRAITS == ("horn", "wings", "tail", "hair", "accessories")

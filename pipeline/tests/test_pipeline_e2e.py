@@ -113,7 +113,7 @@ def test_pipeline_end_to_end(tmp_path: Path, monkeypatch):
             f"item {item['id']} should not have 'ground' in traits"
         )
     # Derived traits must be present on every item
-    derived_presence = ("has_horn", "has_wings", "has_legsBack", "has_hair", "has_accessories")
+    derived_presence = ("has_horn", "has_wings", "has_tail", "has_hair", "has_accessories")
     for item in upegs["items"]:
         assert any(k in item["traits"] for k in derived_presence), (
             f"item {item['id']} missing all has_* derived traits"

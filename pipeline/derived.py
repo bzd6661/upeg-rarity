@@ -18,7 +18,7 @@ from __future__ import annotations
 import re
 
 # Shape traits whose value=0 means "absent"
-PRESENCE_TRAITS = ("horn", "wings", "legsBack", "hair", "accessories")
+PRESENCE_TRAITS = ("horn", "wings", "tail", "hair", "accessories")
 
 # Matches `fill="#abc"` or `fill='#abcdef'` etc. Case-insensitive on the hex.
 _FILL_PATTERN = re.compile(r'fill\s*=\s*["\']\s*(#[0-9a-fA-F]+)\s*["\']')

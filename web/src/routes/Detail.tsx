@@ -18,7 +18,7 @@ const PRESENCE_FLAGS = [
   "has_hair",
   "has_horn",
   "has_wings",
-  "has_legsBack",
+  "has_tail",
   "has_accessories",
 ] as const;
 

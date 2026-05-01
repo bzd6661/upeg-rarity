@@ -7,7 +7,7 @@ const FEATURED_ORDER = [
   "has_hair",
   "has_horn",
   "has_wings",
-  "has_legsBack",
+  "has_tail",
   "has_accessories",
   "hair",
   "horn",
@@ -20,7 +20,7 @@ const FEATURED_ORDER = [
 
 // Shape traits where value=0 means "absent" — render the 0 chip as "none".
 const ABSENCE_AS_NONE = new Set([
-  "hair", "horn", "wings", "legsBack", "accessories",
+  "hair", "horn", "wings", "tail", "accessories",
 ]);
 
 // Friendly labels for each category in the sidebar.
@@ -29,7 +29,7 @@ const CATEGORY_LABEL: Record<string, string> = {
   has_hair: "Has hair",
   has_horn: "Has horn",
   has_wings: "Has wings",
-  has_legsBack: "Has back legs",
+  has_tail: "Has tail",
   has_accessories: "Has accessories",
   legsBack: "Back legs",
   legsFront: "Front legs",

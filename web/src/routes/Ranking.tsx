@@ -105,7 +105,7 @@ export function Ranking({ bundle }: Props) {
                     ["hair", "has_hair"],
                     ["horn", "has_horn"],
                     ["wings", "has_wings"],
-                    ["legsBack", "has_legsBack"],
+                    ["tail", "has_tail"],
                     ["accessories", "has_accessories"],
                   ]
                     .filter(([, key]) => item.traits[key] === 1)
