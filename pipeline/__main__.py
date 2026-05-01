@@ -20,6 +20,7 @@ import logging
 import sys
 from pathlib import Path
 
+from pipeline.derived import add_derived_traits
 from pipeline.emit import emit_all
 from pipeline.enumerate import enumerate_all
 from pipeline.rarity import rank_collection
@@ -80,7 +81,8 @@ def main(argv: list[str] | None = None) -> int:
             svg = router.call(lambda w3, s=seed: extract_svg(w3, s))
             base = {"id": token_id, "seed": seed, "traits": traits, "svg": svg}
         # "ground" has groundCount=0 (no variants) — excluded from rarity scoring.
-        base["traits"] = {k: v for k, v in base["traits"].items() if k != "ground"}
+        cleaned = {k: v for k, v in base["traits"].items() if k != "ground"}
+        base["traits"] = add_derived_traits(cleaned)
         items.append({**base, "owner": owner})
 
     log.info("Cache hits: %d / %d (%.1f%%)",
