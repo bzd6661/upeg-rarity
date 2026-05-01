@@ -8,8 +8,8 @@ import type { DataBundle } from "../types";
 
 const FOLLOWED_KEY = "upeg-rarity:follow-prompted-v2";
 
-// Subtract reserved height for header + page padding + filters/search + status line
-const RESERVED_VERTICAL_PX = 240;
+// Subtract reserved height for header + page padding + "Showing" line + search/filters above main column
+const RESERVED_VERTICAL_PX = 200;
 
 function computeListHeight() {
   if (typeof window === "undefined") return 600;
@@ -33,6 +33,11 @@ export function Ranking({ bundle }: Props) {
   const [showFollow, setShowFollow] = useState(false);
 
   useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
+  useEffect(() => {
     const onResize = () => setListHeight(computeListHeight());
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
@@ -54,8 +59,8 @@ export function Ranking({ bundle }: Props) {
   }, [bundle, filter, query]);
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-      <aside className="lg:sticky lg:top-[65px] lg:self-start max-h-[calc(100vh-100px)] overflow-y-auto pr-1">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)] h-[calc(100vh-120px)]">
+      <aside className="overflow-y-auto pr-1 lg:max-h-full">
         {/* Search box */}
         <div className="relative mb-4">
           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
@@ -72,11 +77,11 @@ export function Ranking({ bundle }: Props) {
         </div>
         <TraitFilters trait_frequencies={bundle.stats.trait_frequencies} value={filter} onChange={setFilter} />
       </aside>
-      <FollowPrompt open={showFollow} onClose={() => setShowFollow(false)} />
-      <main>
-        <p className="mb-3 text-xs font-medium text-zinc-500">
+      <main className="flex min-h-0 flex-col">
+        <p className="mb-4 text-sm text-zinc-400">
           Showing {filtered.length} of {bundle.upegs.total_minted}
         </p>
+        <div className="flex-1 min-h-0">
         <List height={listHeight} itemCount={filtered.length} itemSize={88} width="100%">
           {({ index, style }) => {
             const item = filtered[index];
@@ -154,7 +159,9 @@ export function Ranking({ bundle }: Props) {
             );
           }}
         </List>
+        </div>
       </main>
+      <FollowPrompt open={showFollow} onClose={() => setShowFollow(false)} />
     </div>
   );
 }
