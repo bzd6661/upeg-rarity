@@ -26,8 +26,8 @@ export function indexUpegs(items: Upeg[]) {
   return { byId, byOwner };
 }
 
-async function fetchJson<T>(url: string): Promise<T> {
-  const r = await fetch(url, { cache: "no-cache" });
+async function fetchJson<T>(url: string, cacheMode: RequestCache = "default"): Promise<T> {
+  const r = await fetch(url, { cache: cacheMode });
   if (!r.ok) throw new Error(`fetch ${url} → ${r.status}`);
   return (await r.json()) as T;
 }
@@ -52,7 +52,7 @@ function writeCache(entry: CacheEntry) {
 export async function loadBundle(): Promise<DataBundle> {
   if (inFlight) return inFlight;
   inFlight = (async () => {
-    const meta = await fetchJson<MetaFile>("/meta.json");
+    const meta = await fetchJson<MetaFile>("/meta.json", "no-cache");
     const cached = readCache();
     let upegs: UpegsFile;
     let stats: StatsFile;
@@ -69,5 +69,6 @@ export async function loadBundle(): Promise<DataBundle> {
     const { byId, byOwner } = indexUpegs(upegs.items);
     return { upegs, stats, meta, byId, byOwner };
   })();
+  inFlight.catch(() => { inFlight = null; });
   return inFlight;
 }

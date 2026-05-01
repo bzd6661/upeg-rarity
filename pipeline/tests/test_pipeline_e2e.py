@@ -107,3 +107,8 @@ def test_pipeline_end_to_end(tmp_path: Path, monkeypatch):
     # Owner mapping reflects the fake holdings
     assert by_id[1]["owner"] == "0xaaaa"
     assert by_id[3]["owner"] == "0xbbbb"
+    # "ground" has no variants (groundCount=0) and must be excluded from traits
+    for item in upegs["items"]:
+        assert "ground" not in item["traits"], (
+            f"item {item['id']} should not have 'ground' in traits"
+        )

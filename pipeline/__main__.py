@@ -79,6 +79,8 @@ def main(argv: list[str] | None = None) -> int:
             traits = router.call(lambda w3, s=seed: extract_traits(w3, s))
             svg = router.call(lambda w3, s=seed: extract_svg(w3, s))
             base = {"id": token_id, "seed": seed, "traits": traits, "svg": svg}
+        # "ground" has groundCount=0 (no variants) — excluded from rarity scoring.
+        base["traits"] = {k: v for k, v in base["traits"].items() if k != "ground"}
         items.append({**base, "owner": owner})
 
     log.info("Cache hits: %d / %d (%.1f%%)",

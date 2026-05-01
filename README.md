@@ -12,7 +12,9 @@ Public, zero-cost rarity explorer for [Unipeg (uPEG)](https://etherscan.io/addre
 
 ```bash
 # 1. Pipeline
-python -m venv .venv && source .venv/Scripts/activate
+python -m venv .venv
+# Windows: source .venv/Scripts/activate
+# Linux/macOS: source .venv/bin/activate
 pip install -r requirements-dev.txt
 pytest                    # run pipeline tests
 python -m pipeline        # produce data/ (15-40 min on first run)

@@ -34,7 +34,7 @@ jobs:
           if [[ -n "$(git status --porcelain data/)" ]]; then
             git add data/
             git commit -m "data: hourly refresh $(date -u +%FT%TZ)"
-            git push
+            git push origin HEAD:main
           else
             echo "No data changes"
           fi
