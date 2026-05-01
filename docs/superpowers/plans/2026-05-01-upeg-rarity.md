@@ -512,206 +512,293 @@ git commit -m "feat(pipeline): RPC router with rotation and bounded retry"
 
 ---
 
-## Task 3: Transfer Event Scanner
+## Task 3: Holder Enumerator (REVISED per Phase 0)
+
+> **Phase 0 update:** The original plan assumed standard ERC-721 with Transfer events + `tokenURI`. Phase 0 found `tokenURI` reverts unconditionally. The collection is enumerated via `HoldersCount` → `Holder(i)` → `OwnerUpegsPage(holder, page, size)` returning `(id, seed)` tuples. See `docs/phase0-findings.md` for full evidence.
 
 **Files:**
-- Create: `pipeline/scan.py`, `pipeline/tests/test_scan.py`
-- Create: `pipeline/contract.py` (constants)
+- Create: `pipeline/contract.py` (addresses + ABIs + TRAIT_FIELDS)
+- Create: `pipeline/enumerate.py`, `pipeline/tests/test_enumerate.py`
 
 - [ ] **Step 1: Write contract constants**
 
 Create `pipeline/contract.py`:
 
 ```python
-"""uPEG contract address + ABI fragments used by the pipeline."""
+"""uPEG contract addresses + ABI fragments + trait schema used by the pipeline.
+
+The collection lives across two contracts:
+- UPEG_ADDRESS: main hybrid ERC-20/NFT contract. Holds enumeration surface.
+- HOOK_ADDRESS: imageParams helper. Holds trait extraction (getSeedData) and SVG (generate).
+
+`tokenURI` is intentionally NOT in any ABI — it reverts unconditionally on chain.
+"""
 from web3 import Web3
 
 UPEG_ADDRESS = Web3.to_checksum_address("0x44b28991b167582f18ba0259e0173176ca125505")
+HOOK_ADDRESS = Web3.to_checksum_address("0xe54082DfBf044B6a8F584bdDdb90a22d5613C440")
 
-# Standard ERC-20/721 Transfer event topic
-TRANSFER_TOPIC = Web3.keccak(text="Transfer(address,address,uint256)").to_0x_hex()
+# Field order MUST match the Solidity UpegMetadata struct exactly.
+# web3.py decodes structs as positional tuples; meta[i] corresponds to TRAIT_FIELDS[i].
+TRAIT_FIELDS: tuple[str, ...] = (
+    "backGroundColor",  # 0
+    "body",             # 1
+    "eyes",             # 2
+    "horn",             # 3
+    "wings",            # 4
+    "tail",             # 5
+    "legsFront",        # 6
+    "legsBack",         # 7
+    "accessories",      # 8
+    "hair",             # 9
+    "ground",           # 10
+    "bodyColor",        # 11
+    "hornColor",        # 12
+    "wingsColor",       # 13
+    "tailColor",        # 14
+    "hairColor",        # 15
+    "accessoriesColor", # 16
+    "eyesColor",        # 17
+)
 
-ABI = [
+MAIN_ABI = [
     {
-        "name": "tokenURI",
+        "name": "HoldersCount",
         "type": "function",
         "stateMutability": "view",
-        "inputs": [{"name": "tokenId", "type": "uint256"}],
-        "outputs": [{"name": "", "type": "string"}],
+        "inputs": [],
+        "outputs": [{"name": "", "type": "uint256"}],
     },
     {
-        "name": "ownerOf",
+        "name": "Holder",
         "type": "function",
         "stateMutability": "view",
-        "inputs": [{"name": "tokenId", "type": "uint256"}],
+        "inputs": [{"name": "index", "type": "uint256"}],
         "outputs": [{"name": "", "type": "address"}],
+    },
+    {
+        "name": "OwnerUpegsCount",
+        "type": "function",
+        "stateMutability": "view",
+        "inputs": [{"name": "owner", "type": "address"}],
+        "outputs": [{"name": "", "type": "uint256"}],
+    },
+    {
+        "name": "OwnerUpegsPage",
+        "type": "function",
+        "stateMutability": "view",
+        "inputs": [
+            {"name": "owner", "type": "address"},
+            {"name": "page", "type": "uint256"},
+            {"name": "pageSize", "type": "uint256"},
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "tuple[]",
+                "components": [
+                    {"name": "id", "type": "uint256"},
+                    {"name": "seed", "type": "uint256"},
+                ],
+            }
+        ],
+    },
+]
+
+# UpegMetadata struct (18 uint8 fields) — must match TRAIT_FIELDS order
+_METADATA_COMPONENTS = [{"name": n, "type": "uint8"} for n in TRAIT_FIELDS]
+
+HOOK_ABI = [
+    {
+        "name": "getSeedData",
+        "type": "function",
+        "stateMutability": "view",
+        "inputs": [{"name": "seed", "type": "uint256"}],
+        "outputs": [{"name": "", "type": "tuple", "components": _METADATA_COMPONENTS}],
+    },
+    {
+        "name": "generate",
+        "type": "function",
+        "stateMutability": "view",
+        "inputs": [{"name": "seed", "type": "uint256"}],
+        "outputs": [{"name": "", "type": "string"}],
     },
 ]
 ```
 
 - [ ] **Step 2: Write failing test**
 
-Create `pipeline/tests/test_scan.py`:
+Create `pipeline/tests/test_enumerate.py`:
 
 ```python
-"""Tests for pipeline.scan — event log walking + token-id extraction."""
-from unittest.mock import MagicMock
-from pipeline.scan import scan_transfers, extract_minted_ids
+"""Tests for pipeline.enumerate — holder-and-holdings enumeration."""
+from pipeline.enumerate import enumerate_all, enumerate_holders, enumerate_holdings
 
 
-def _fake_log(token_id: int, from_addr: str, to_addr: str) -> dict:
-    pad = lambda h: "0x" + h[2:].rjust(64, "0")
-    return {
-        "topics": [
-            "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-            pad(from_addr),
-            pad(to_addr),
-            pad(hex(token_id)),
-        ],
-        "blockNumber": 1000,
-    }
+class _FnReturn:
+    def __init__(self, value):
+        self._value = value
+    def call(self):
+        return self._value
 
 
-def test_extract_minted_ids_from_logs():
-    logs = [
-        _fake_log(1, "0x0", "0xabc"),
-        _fake_log(2, "0x0", "0xdef"),
-        _fake_log(1, "0xabc", "0xdef"),  # transfer, not mint
-    ]
-    minted = extract_minted_ids(logs)
-    assert minted == {1, 2}
+class _FakeMain:
+    """Stand-in for the main UPEG contract — implements HoldersCount/Holder/OwnerUpegs*."""
+    def __init__(self, holdings_by_holder: dict[str, list[tuple[int, int]]]):
+        self._holdings = holdings_by_holder
+        self._holders = list(holdings_by_holder.keys())
+
+    @property
+    def functions(self):
+        return self
+
+    def HoldersCount(self):
+        return _FnReturn(len(self._holders))
+
+    def Holder(self, index):
+        return _FnReturn(self._holders[index])
+
+    def OwnerUpegsCount(self, owner):
+        return _FnReturn(len(self._holdings.get(owner, [])))
+
+    def OwnerUpegsPage(self, owner, page, pageSize):
+        items = self._holdings.get(owner, [])
+        start = page * pageSize
+        return _FnReturn(items[start : start + pageSize])
 
 
-def test_scan_transfers_chunks_by_block_range():
-    fake_w3 = MagicMock()
-    fake_w3.eth.get_logs.return_value = []
-    fake_w3.eth.block_number = 105
+class _FakeW3:
+    def __init__(self, main_contract):
+        self._main = main_contract
+        self.eth = self
 
-    scan_transfers(fake_w3, contract_address="0xC", from_block=100, chunk_size=2)
-
-    # Expect chunks: 100-101, 102-103, 104-105 → 3 calls
-    assert fake_w3.eth.get_logs.call_count == 3
-    first_call = fake_w3.eth.get_logs.call_args_list[0][0][0]
-    assert first_call["fromBlock"] == 100
-    assert first_call["toBlock"] == 101
+    def contract(self, address, abi):
+        return self._main
 
 
-def test_scan_transfers_aggregates_logs():
-    fake_w3 = MagicMock()
-    fake_w3.eth.block_number = 101
-    fake_w3.eth.get_logs.return_value = [_fake_log(7, "0x0", "0xabc")]
+def test_enumerate_holders_returns_all():
+    main = _FakeMain({"0xaaa": [], "0xbbb": [], "0xccc": []})
+    w3 = _FakeW3(main)
+    assert enumerate_holders(w3) == ["0xaaa", "0xbbb", "0xccc"]
 
-    logs = scan_transfers(fake_w3, contract_address="0xC", from_block=100, chunk_size=10)
-    assert len(logs) == 1
-    assert extract_minted_ids(logs) == {7}
+
+def test_enumerate_holdings_pages_through_one_owner():
+    main = _FakeMain({
+        "0xaaa": [(1, 100), (2, 200), (3, 300), (4, 400), (5, 500)],
+    })
+    w3 = _FakeW3(main)
+    holdings = enumerate_holdings(w3, "0xaaa", page_size=2)
+    assert holdings == [(1, 100), (2, 200), (3, 300), (4, 400), (5, 500)]
+
+
+def test_enumerate_holdings_handles_empty_owner():
+    main = _FakeMain({"0xaaa": []})
+    w3 = _FakeW3(main)
+    assert enumerate_holdings(w3, "0xaaa") == []
+
+
+def test_enumerate_all_combines_holders_and_holdings():
+    main = _FakeMain({
+        "0xaaa": [(1, 100), (2, 200)],
+        "0xbbb": [(3, 300)],
+    })
+    w3 = _FakeW3(main)
+    result = enumerate_all(w3)
+    assert sorted(result) == [(1, 100, "0xaaa"), (2, 200, "0xaaa"), (3, 300, "0xbbb")]
 ```
 
 - [ ] **Step 3: Run test, verify it fails**
 
 ```bash
-pytest pipeline/tests/test_scan.py -v
+pytest pipeline/tests/test_enumerate.py -v
 ```
 
-Expected: ImportError on `pipeline.scan`.
+Expected: ImportError on `pipeline.enumerate`.
 
 - [ ] **Step 4: Write implementation**
 
-Create `pipeline/scan.py`:
+Create `pipeline/enumerate.py`:
 
 ```python
-"""Transfer event scanner.
+"""Holder + holdings enumeration via the main uPEG contract.
 
-Walks the chain in fixed-size block chunks, returns Transfer logs.
-Mints are identified as Transfers from the zero address.
+uPEG does NOT expose tokenURI. Token enumeration walks current holders
+(via HoldersCount + Holder(i)) and pages through each holder's holdings
+(via OwnerUpegsPage). Each holding is a (token_id, seed) tuple — the seed
+is what feeds trait extraction in `pipeline.traits`.
 """
 from __future__ import annotations
 
 import logging
-from typing import Iterable
 
-from pipeline.contract import TRANSFER_TOPIC
+from pipeline.contract import MAIN_ABI, UPEG_ADDRESS
 
 logger = logging.getLogger(__name__)
 
-ZERO_ADDRESS_TOPIC = "0x" + "0" * 64
+DEFAULT_PAGE_SIZE = 100
 
 
-def scan_transfers(
-    w3,
-    contract_address: str,
-    from_block: int,
-    chunk_size: int = 5000,
-    to_block: int | None = None,
-) -> list[dict]:
-    """Fetch all Transfer logs in [from_block, to_block] for contract_address."""
-    if to_block is None:
-        to_block = w3.eth.block_number
-
-    all_logs: list[dict] = []
-    cursor = from_block
-    while cursor <= to_block:
-        end = min(cursor + chunk_size - 1, to_block)
-        logger.info("Scanning blocks %d..%d", cursor, end)
-        logs = w3.eth.get_logs({
-            "address": contract_address,
-            "fromBlock": cursor,
-            "toBlock": end,
-            "topics": [TRANSFER_TOPIC],
-        })
-        all_logs.extend(logs)
-        cursor = end + 1
-    return all_logs
+def _main_contract(w3):
+    return w3.eth.contract(address=UPEG_ADDRESS, abi=MAIN_ABI)
 
 
-def extract_minted_ids(logs: Iterable[dict]) -> set[int]:
-    """A mint is a Transfer where topic[1] (from) is the zero address."""
-    minted: set[int] = set()
-    for log in logs:
-        topics = log["topics"]
-        if len(topics) < 4:
-            continue
-        from_topic = topics[1].hex() if hasattr(topics[1], "hex") else topics[1]
-        if from_topic.lower() == ZERO_ADDRESS_TOPIC:
-            token_id_topic = topics[3].hex() if hasattr(topics[3], "hex") else topics[3]
-            minted.add(int(token_id_topic, 16))
-    return minted
+def enumerate_holders(w3) -> list[str]:
+    """Return every current uPEG holder address."""
+    c = _main_contract(w3)
+    n = c.functions.HoldersCount().call()
+    return [c.functions.Holder(i).call() for i in range(n)]
 
 
-def current_owners(logs: Iterable[dict]) -> dict[int, str]:
-    """Walk transfers in order; the last `to` for each token id is the current owner."""
-    owners: dict[int, str] = {}
-    for log in sorted(logs, key=lambda x: (x["blockNumber"], x.get("logIndex", 0))):
-        topics = log["topics"]
-        if len(topics) < 4:
-            continue
-        to_topic = topics[2].hex() if hasattr(topics[2], "hex") else topics[2]
-        token_id_topic = topics[3].hex() if hasattr(topics[3], "hex") else topics[3]
-        token_id = int(token_id_topic, 16)
-        owner = "0x" + to_topic[-40:]
-        owners[token_id] = owner
-    return owners
+def enumerate_holdings(
+    w3, holder: str, page_size: int = DEFAULT_PAGE_SIZE
+) -> list[tuple[int, int]]:
+    """Return [(token_id, seed), ...] currently held by `holder`."""
+    c = _main_contract(w3)
+    count = c.functions.OwnerUpegsCount(holder).call()
+    if count == 0:
+        return []
+    pages = (count + page_size - 1) // page_size
+    out: list[tuple[int, int]] = []
+    for page in range(pages):
+        # OwnerUpegsPage is 0-indexed (verified in Phase 0)
+        items = c.functions.OwnerUpegsPage(holder, page, page_size).call()
+        for entry in items:
+            # web3.py returns each tuple element as positional (id, seed)
+            out.append((int(entry[0]), int(entry[1])))
+    return out
+
+
+def enumerate_all(w3) -> list[tuple[int, int, str]]:
+    """Enumerate the full collection as [(token_id, seed, owner), ...]."""
+    out: list[tuple[int, int, str]] = []
+    holders = enumerate_holders(w3)
+    logger.info("Enumerating holdings across %d holders", len(holders))
+    for holder in holders:
+        for token_id, seed in enumerate_holdings(w3, holder):
+            out.append((token_id, seed, holder))
+    return out
 ```
 
 - [ ] **Step 5: Run test, verify it passes**
 
 ```bash
-pytest pipeline/tests/test_scan.py -v
+pytest pipeline/tests/test_enumerate.py -v
 ```
 
-Expected: 3 passed.
+Expected: 4 passed.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add pipeline/scan.py pipeline/contract.py pipeline/tests/test_scan.py
-git commit -m "feat(pipeline): Transfer event scanner with chunking + mint detection"
+git add pipeline/contract.py pipeline/enumerate.py pipeline/tests/test_enumerate.py
+git commit -m "feat(pipeline): holder/holdings enumeration via OwnerUpegsPage"
 ```
 
 ---
 
-## Task 4: Trait Extractor (Scenario A — adjust per Phase 0)
+## Task 4: Trait Extractor via getSeedData (REVISED per Phase 0)
 
-> **Phase 0 dependency:** This task is written assuming `Scenario A` from Phase 0 (tokenURI returns base64 JSON with `attributes[]`). If Phase 0 returned **Scenario B** (raw SVG), replace the `_decode_token_uri` body with the SVG parser implementation determined during Phase 0; the public API and tests should still hold. If Phase 0 was **Scenario C**, this task is N/A — re-brainstorm before continuing.
+> **Phase 0 update:** Traits come from `getSeedData(seed)` on the helper hook contract `0xe54082...`, NOT from `tokenURI`. The function returns an 18-field uint8 tuple decoded positionally per `TRAIT_FIELDS`. SVG comes from `generate(seed)` on the same contract. See `docs/phase0-findings.md`.
 
 **Files:**
 - Create: `pipeline/traits.py`, `pipeline/tests/test_traits.py`
@@ -721,45 +808,70 @@ git commit -m "feat(pipeline): Transfer event scanner with chunking + mint detec
 Create `pipeline/tests/test_traits.py`:
 
 ```python
-"""Tests for pipeline.traits — tokenURI -> trait dict."""
-import base64
-import json
-from pipeline.traits import decode_traits, normalize_attributes
+"""Tests for pipeline.traits — seed -> structured traits dict + SVG."""
+import pytest
+from pipeline.contract import TRAIT_FIELDS
+from pipeline.traits import decode_seed_tuple, extract_traits, extract_svg
 
 
-def _data_uri(payload: dict) -> str:
-    raw = json.dumps(payload).encode()
-    b64 = base64.b64encode(raw).decode()
-    return f"data:application/json;base64,{b64}"
+class _FnReturn:
+    def __init__(self, value):
+        self._value = value
+    def call(self):
+        return self._value
 
 
-def test_decode_simple_attributes():
-    uri = _data_uri({
-        "name": "Upeg #1",
-        "image": "data:image/svg+xml;base64,PHN2Zy8+",
-        "attributes": [
-            {"trait_type": "color", "value": "rainbow"},
-            {"trait_type": "layer", "value": "celestial"},
-        ],
-    })
-    result = decode_traits(uri)
-    assert result["traits"] == {"color": "rainbow", "layer": "celestial"}
-    assert result["svg"].startswith("<svg")
+class _FakeHook:
+    def __init__(self, seed_to_meta: dict[int, tuple], seed_to_svg: dict[int, str]):
+        self._meta = seed_to_meta
+        self._svg = seed_to_svg
+
+    @property
+    def functions(self):
+        return self
+
+    def getSeedData(self, seed):
+        return _FnReturn(self._meta[seed])
+
+    def generate(self, seed):
+        return _FnReturn(self._svg[seed])
 
 
-def test_normalize_attributes_handles_missing_trait_type():
-    raw = [
-        {"trait_type": "color", "value": "red"},
-        {"value": "orphan"},  # no trait_type → ignored
-        {"trait_type": "size", "value": 7},  # numeric value preserved
-    ]
-    assert normalize_attributes(raw) == {"color": "red", "size": 7}
+class _FakeW3:
+    def __init__(self, hook):
+        self._hook = hook
+        self.eth = self
+
+    def contract(self, address, abi):
+        return self._hook
 
 
-def test_decode_traits_raises_on_missing_uri_prefix():
-    import pytest
-    with pytest.raises(ValueError, match="unsupported tokenURI"):
-        decode_traits("https://example.com/1.json")
+def test_decode_seed_tuple_maps_positionally():
+    # 18 values, one per TRAIT_FIELDS entry, all distinct so we can verify order
+    meta = tuple(range(18))
+    result = decode_seed_tuple(meta)
+    assert result == {field: i for i, field in enumerate(TRAIT_FIELDS)}
+
+
+def test_decode_seed_tuple_rejects_wrong_length():
+    with pytest.raises(ValueError, match="expected 18"):
+        decode_seed_tuple((1, 2, 3))
+
+
+def test_extract_traits_calls_hook_and_decodes():
+    seed = 12345
+    meta = tuple(range(18))
+    w3 = _FakeW3(_FakeHook({seed: meta}, {}))
+    result = extract_traits(w3, seed)
+    assert result["backGroundColor"] == 0
+    assert result["eyesColor"] == 17
+    assert len(result) == 18
+
+
+def test_extract_svg_calls_generate():
+    seed = 999
+    w3 = _FakeW3(_FakeHook({}, {seed: "<svg width='24'></svg>"}))
+    assert extract_svg(w3, seed) == "<svg width='24'></svg>"
 ```
 
 - [ ] **Step 2: Run test, verify it fails**
@@ -775,49 +887,42 @@ Expected: ImportError on `pipeline.traits`.
 Create `pipeline/traits.py`:
 
 ```python
-"""Decode uPEG `tokenURI(id)` output into structured traits + SVG.
+"""Trait + SVG extraction via the helper hook contract.
 
-Scenario A implementation: assumes `data:application/json;base64,...` URI
-whose decoded JSON contains an `attributes` array of `{trait_type, value}`.
+uPEG traits live in a 2-contract setup. The main contract gives us (id, seed)
+pairs. This module turns seed -> structured trait dict via getSeedData, and
+seed -> on-chain SVG via generate. Both calls hit HOOK_ADDRESS.
+
+web3.py decodes the UpegMetadata struct as a positional tuple — element i
+maps to TRAIT_FIELDS[i]. See docs/phase0-findings.md for the full schema.
 """
 from __future__ import annotations
 
-import base64
-import json
-from typing import Any
+from pipeline.contract import HOOK_ABI, HOOK_ADDRESS, TRAIT_FIELDS
 
 
-def decode_traits(token_uri: str) -> dict[str, Any]:
-    """Return {"traits": {key: value, ...}, "svg": "<svg>..."} from tokenURI string."""
-    if not token_uri.startswith("data:application/json;base64,"):
-        raise ValueError(f"unsupported tokenURI prefix: {token_uri[:50]}")
-
-    payload = base64.b64decode(token_uri.split(",", 1)[1])
-    meta = json.loads(payload)
-
-    traits = normalize_attributes(meta.get("attributes", []))
-    svg = _extract_svg(meta.get("image", ""))
-    return {"traits": traits, "svg": svg}
+def _hook_contract(w3):
+    return w3.eth.contract(address=HOOK_ADDRESS, abi=HOOK_ABI)
 
 
-def normalize_attributes(attrs: list[dict]) -> dict[str, Any]:
-    """Convert OpenSea-style attribute list into a flat dict."""
-    out: dict[str, Any] = {}
-    for a in attrs:
-        key = a.get("trait_type")
-        if key is None:
-            continue
-        out[key] = a.get("value")
-    return out
+def decode_seed_tuple(meta: tuple) -> dict[str, int]:
+    """Map a positional 18-tuple from getSeedData() into a {field_name: value} dict."""
+    if len(meta) != len(TRAIT_FIELDS):
+        raise ValueError(
+            f"expected {len(TRAIT_FIELDS)} fields, got {len(meta)}: {meta}"
+        )
+    return {field: int(value) for field, value in zip(TRAIT_FIELDS, meta)}
 
 
-def _extract_svg(image_field: str) -> str:
-    """Image field is typically `data:image/svg+xml;base64,...`. Decode to raw SVG."""
-    if image_field.startswith("data:image/svg+xml;base64,"):
-        return base64.b64decode(image_field.split(",", 1)[1]).decode("utf-8", errors="replace")
-    if image_field.startswith("<svg"):
-        return image_field
-    return ""
+def extract_traits(w3, seed: int) -> dict[str, int]:
+    """Read traits for a single seed via getSeedData(seed) on the hook contract."""
+    meta = _hook_contract(w3).functions.getSeedData(seed).call()
+    return decode_seed_tuple(meta)
+
+
+def extract_svg(w3, seed: int) -> str:
+    """Read the on-chain SVG for a single seed via generate(seed) on the hook contract."""
+    return _hook_contract(w3).functions.generate(seed).call()
 ```
 
 - [ ] **Step 4: Run test, verify it passes**
@@ -826,13 +931,13 @@ def _extract_svg(image_field: str) -> str:
 pytest pipeline/tests/test_traits.py -v
 ```
 
-Expected: 3 passed.
+Expected: 4 passed.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add pipeline/traits.py pipeline/tests/test_traits.py
-git commit -m "feat(pipeline): tokenURI -> traits decoder (Scenario A)"
+git commit -m "feat(pipeline): seed -> traits + svg via getSeedData/generate"
 ```
 
 ---
@@ -1123,84 +1228,15 @@ git commit -m "feat(pipeline): JSON emitter for upegs / stats / meta"
 
 ---
 
-## Task 7: Pipeline Orchestrator + State File
+## Task 7: Pipeline Orchestrator (REVISED per Phase 0)
+
+> **Phase 0 update:** No state file is needed. The pipeline reads current chain state each run via holder enumeration; the previous run's `data/upegs.json` is the cache (keyed by id+seed since traits are immutable per seed). No genesis block lookup is required.
 
 **Files:**
 - Create: `pipeline/__main__.py` (replaces stub)
-- Create: `pipeline/state.py`, `pipeline/tests/test_state.py`
+- Create: `pipeline/tests/test_pipeline_e2e.py`
 
-- [ ] **Step 1: Write state-file test**
-
-Create `pipeline/tests/test_state.py`:
-
-```python
-"""Tests for pipeline.state — last-scanned-block persistence."""
-from pathlib import Path
-from pipeline.state import load_state, save_state, DEFAULT_GENESIS_BLOCK
-
-
-def test_load_state_returns_default_when_missing(tmp_path: Path):
-    state = load_state(tmp_path / "missing.json")
-    assert state["last_scanned_block"] == DEFAULT_GENESIS_BLOCK
-
-
-def test_save_then_load_state_roundtrip(tmp_path: Path):
-    p = tmp_path / "_state.json"
-    save_state(p, {"last_scanned_block": 12345})
-    assert load_state(p) == {"last_scanned_block": 12345}
-```
-
-- [ ] **Step 2: Run test, verify it fails**
-
-```bash
-pytest pipeline/tests/test_state.py -v
-```
-
-Expected: ImportError on `pipeline.state`.
-
-- [ ] **Step 3: Write state implementation**
-
-Create `pipeline/state.py`:
-
-```python
-"""Persistent state for the pipeline (last scanned block, etc.)."""
-from __future__ import annotations
-
-import json
-from pathlib import Path
-
-# uPEG contract deployment block. Task 8 Step 1 instructs the executor to
-# replace this placeholder with the actual deployment block looked up via
-# `cast block-creation 0x44b2...5505` or Etherscan's "Contract Creator" line.
-DEFAULT_GENESIS_BLOCK = 22_000_000
-
-REORG_DEPTH = 12  # re-scan this many blocks each run to absorb shallow re-orgs
-
-
-def load_state(path: Path) -> dict:
-    p = Path(path)
-    if not p.exists():
-        return {"last_scanned_block": DEFAULT_GENESIS_BLOCK}
-    return json.loads(p.read_text())
-
-
-def save_state(path: Path, state: dict) -> None:
-    p = Path(path)
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(state, indent=2))
-```
-
-> **Note for executor:** Before the first mainnet run (Task 8), look up the actual contract deployment block on Etherscan and replace `DEFAULT_GENESIS_BLOCK`. Otherwise the first run will scan from 22M which adds time and RPC pressure but won't be incorrect.
-
-- [ ] **Step 4: Run state test, verify it passes**
-
-```bash
-pytest pipeline/tests/test_state.py -v
-```
-
-Expected: 2 passed.
-
-- [ ] **Step 5: Write orchestrator**
+- [ ] **Step 1: Write orchestrator**
 
 Replace `pipeline/__main__.py`:
 
@@ -1210,84 +1246,94 @@ Replace `pipeline/__main__.py`:
 Run as:
     python -m pipeline           # full run
     python -m pipeline --dry-run # don't write outputs
+
+Strategy:
+  1. Enumerate every (id, seed, owner) currently held on chain.
+  2. For each (id, seed): if previous run's upegs.json had a matching
+     (id, seed) entry, reuse its traits + svg (immutable per seed).
+     Otherwise call the hook contract for fresh traits + svg.
+  3. Always refresh `owner` (changes on every transfer).
+  4. Compute OpenRarity scores across the full set, emit JSON.
 """
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import sys
 from pathlib import Path
 
-from pipeline.contract import ABI, UPEG_ADDRESS
 from pipeline.emit import emit_all
+from pipeline.enumerate import enumerate_all
 from pipeline.rarity import rank_collection
 from pipeline.rpc import RpcRouter
-from pipeline.scan import current_owners, extract_minted_ids, scan_transfers
-from pipeline.state import REORG_DEPTH, load_state, save_state
-from pipeline.traits import decode_traits
+from pipeline.traits import extract_svg, extract_traits
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 log = logging.getLogger("pipeline")
 
 DATA_DIR = Path("data")
-STATE_PATH = DATA_DIR / "_state.json"
+
+
+def _load_cache() -> dict[tuple[int, int], dict]:
+    """Index previous run's items by (id, seed) for cache reuse."""
+    upegs_path = DATA_DIR / "upegs.json"
+    if not upegs_path.exists():
+        return {}
+    cache: dict[tuple[int, int], dict] = {}
+    for item in json.loads(upegs_path.read_text()).get("items", []):
+        # Older items may lack `seed` if schema evolves — skip those, recompute.
+        if "seed" not in item:
+            continue
+        cache[(int(item["id"]), int(item["seed"]))] = item
+    return cache
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--from-block", type=int, default=None,
-                        help="Override starting block (default: state file)")
     args = parser.parse_args(argv)
 
     router = RpcRouter.from_env()
-    state = load_state(STATE_PATH)
-    from_block = args.from_block if args.from_block is not None else max(
-        0, state["last_scanned_block"] - REORG_DEPTH
-    )
+    log.info("Enumerating current uPEG holders + holdings")
+    triples = router.call(enumerate_all)
+    latest_block = router.call(lambda w3: w3.eth.block_number)
+    log.info("Got %d (id, seed, owner) entries at block %d", len(triples), latest_block)
 
-    log.info("Scanning Transfer logs from block %d", from_block)
-    latest = router.call(lambda w3: w3.eth.block_number)
-    logs = router.call(
-        lambda w3: scan_transfers(w3, UPEG_ADDRESS, from_block=from_block, to_block=latest)
-    )
-    log.info("Got %d Transfer logs", len(logs))
-
-    minted = extract_minted_ids(logs)
-    owners = current_owners(logs)
-    log.info("Total minted: %d", len(minted))
-
-    # Merge with previously cached items if present
-    cached_items: dict[int, dict] = {}
-    upegs_path = DATA_DIR / "upegs.json"
-    if upegs_path.exists():
-        import json
-        for item in json.loads(upegs_path.read_text())["items"]:
-            cached_items[item["id"]] = item
+    cache = _load_cache()
+    log.info("Cache hit candidates from previous run: %d", len(cache))
 
     items: list[dict] = []
-    for token_id in sorted(minted):
-        if token_id in cached_items and cached_items[token_id].get("traits"):
-            base = cached_items[token_id]
+    cache_hits = 0
+    for token_id, seed, owner in triples:
+        cached = cache.get((token_id, seed))
+        if cached is not None:
+            cache_hits += 1
+            base = {
+                "id": token_id,
+                "seed": seed,
+                "traits": cached["traits"],
+                "svg": cached["svg"],
+            }
         else:
-            uri = router.call(
-                lambda w3, tid=token_id: w3.eth.contract(
-                    address=UPEG_ADDRESS, abi=ABI
-                ).functions.tokenURI(tid).call()
-            )
-            decoded = decode_traits(uri)
-            base = {"id": token_id, **decoded}
-        # owner can change every run; always refresh
-        items.append({**base, "owner": owners.get(token_id, base.get("owner", ""))})
+            traits = router.call(lambda w3, s=seed: extract_traits(w3, s))
+            svg = router.call(lambda w3, s=seed: extract_svg(w3, s))
+            base = {"id": token_id, "seed": seed, "traits": traits, "svg": svg}
+        items.append({**base, "owner": owner})
+
+    log.info("Cache hits: %d / %d (%.1f%%)",
+             cache_hits, len(triples), 100 * cache_hits / max(1, len(triples)))
 
     ranked = rank_collection(items)
 
     if args.dry_run:
-        log.info("Dry run: would emit %d items at block %d", len(ranked), latest)
+        log.info("Dry run: would emit %d items at block %d", len(ranked), latest_block)
         return 0
 
-    emit_all(DATA_DIR, ranked, block=latest)
-    save_state(STATE_PATH, {"last_scanned_block": latest})
+    emit_all(DATA_DIR, ranked, block=latest_block)
     log.info("Wrote %d items to %s", len(ranked), DATA_DIR)
     return 0
 
@@ -1296,103 +1342,123 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-- [ ] **Step 6: Write end-to-end pipeline test (with mocked RPC)**
+- [ ] **Step 2: Write end-to-end pipeline test (with mocked RPC)**
 
 Create `pipeline/tests/test_pipeline_e2e.py`:
 
 ```python
-"""End-to-end pipeline smoke test with a fully mocked RPC."""
-import base64
+"""End-to-end pipeline test with fully mocked RPC + contracts."""
 import json
 from pathlib import Path
 from unittest.mock import patch
+
 from pipeline.__main__ import main
+from pipeline.contract import HOOK_ADDRESS, UPEG_ADDRESS
 
 
-def _make_token_uri(token_id: int, color: str) -> str:
-    payload = {
-        "name": f"Upeg #{token_id}",
-        "image": "data:image/svg+xml;base64," + base64.b64encode(b"<svg/>").decode(),
-        "attributes": [{"trait_type": "color", "value": color}],
-    }
-    return "data:application/json;base64," + base64.b64encode(
-        json.dumps(payload).encode()
-    ).decode()
-
-
-class FakeContractFunction:
+class _FnReturn:
     def __init__(self, value):
         self._value = value
     def call(self):
         return self._value
 
 
-class FakeContract:
-    def __init__(self, uris: dict[int, str]):
-        self._uris = uris
+class _FakeMain:
+    """Main UPEG contract mock — implements enumeration."""
+    def __init__(self, holdings: dict[str, list[tuple[int, int]]]):
+        self._holdings = holdings
+        self._holders = list(holdings.keys())
+
     @property
     def functions(self):
         return self
-    def tokenURI(self, tid):
-        return FakeContractFunction(self._uris[tid])
+
+    def HoldersCount(self):
+        return _FnReturn(len(self._holders))
+
+    def Holder(self, i):
+        return _FnReturn(self._holders[i])
+
+    def OwnerUpegsCount(self, owner):
+        return _FnReturn(len(self._holdings[owner]))
+
+    def OwnerUpegsPage(self, owner, page, page_size):
+        items = self._holdings[owner]
+        start = page * page_size
+        return _FnReturn(items[start:start + page_size])
 
 
-class FakeEth:
-    def __init__(self, logs, latest, contract):
-        self._logs = logs
-        self.block_number = latest
-        self._contract = contract
-    def get_logs(self, params):
-        return [
-            l for l in self._logs
-            if params["fromBlock"] <= l["blockNumber"] <= params["toBlock"]
-        ]
+class _FakeHook:
+    """Hook contract mock — implements getSeedData + generate."""
+    def __init__(self, seed_data: dict[int, tuple], svgs: dict[int, str]):
+        self._seed_data = seed_data
+        self._svgs = svgs
+
+    @property
+    def functions(self):
+        return self
+
+    def getSeedData(self, seed):
+        return _FnReturn(self._seed_data[seed])
+
+    def generate(self, seed):
+        return _FnReturn(self._svgs[seed])
+
+
+class _FakeEth:
+    def __init__(self, main, hook, latest_block):
+        self._main = main
+        self._hook = hook
+        self.block_number = latest_block
+
     def contract(self, address, abi):
-        return self._contract
+        if address == UPEG_ADDRESS:
+            return self._main
+        if address == HOOK_ADDRESS:
+            return self._hook
+        raise AssertionError(f"unexpected contract address {address}")
 
 
-class FakeW3:
-    def __init__(self, logs, latest, contract):
-        self.eth = FakeEth(logs, latest, contract)
-
-
-def _topic(value: int) -> str:
-    return "0x" + hex(value)[2:].rjust(64, "0")
-
-
-def _mint_log(token_id: int, to_addr: str, block: int) -> dict:
-    return {
-        "topics": [
-            "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-            _topic(0),
-            "0x" + to_addr[2:].rjust(64, "0"),
-            _topic(token_id),
-        ],
-        "blockNumber": block,
-        "logIndex": 0,
-    }
+class _FakeW3:
+    def __init__(self, main, hook, latest_block):
+        self.eth = _FakeEth(main, hook, latest_block)
 
 
 def test_pipeline_end_to_end(tmp_path: Path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    logs = [_mint_log(1, "0xaaaa", 100), _mint_log(2, "0xbbbb", 101)]
-    uris = {1: _make_token_uri(1, "red"), 2: _make_token_uri(2, "blue")}
-    fake_w3 = FakeW3(logs, latest=200, contract=FakeContract(uris))
+    main_contract = _FakeMain({
+        "0xaaaa": [(1, 100), (2, 200)],
+        "0xbbbb": [(3, 300)],
+    })
+    # 18-tuple traits — first byte is "category" so we can verify rarity
+    hook_contract = _FakeHook(
+        seed_data={
+            100: (0,) + tuple(range(1, 18)),
+            200: (1,) + tuple(range(1, 18)),
+            300: (1,) + tuple(range(1, 18)),
+        },
+        svgs={100: "<svg id='100'/>", 200: "<svg id='200'/>", 300: "<svg id='300'/>"},
+    )
+    fake_w3 = _FakeW3(main_contract, hook_contract, latest_block=500)
 
     with patch("pipeline.rpc.RpcRouter.from_env") as mock_router:
-        instance = mock_router.return_value
-        instance.call.side_effect = lambda fn: fn(fake_w3)
-        rc = main(["--from-block", "0"])
+        mock_router.return_value.call.side_effect = lambda fn: fn(fake_w3)
+        rc = main([])
 
     assert rc == 0
     upegs = json.loads((tmp_path / "data" / "upegs.json").read_text())
-    assert upegs["total_minted"] == 2
-    ids = [i["id"] for i in upegs["items"]]
-    assert sorted(ids) == [1, 2]
-    assert all("color" in i["traits"] for i in upegs["items"])
+    assert upegs["total_minted"] == 3
+    ids = sorted(item["id"] for item in upegs["items"])
+    assert ids == [1, 2, 3]
+    by_id = {item["id"]: item for item in upegs["items"]}
+    # Token 1 has unique backGroundColor=0 (others=1) → rarest → rank 1
+    assert by_id[1]["rank"] == 1
+    # Owner mapping reflects the fake holdings
+    assert by_id[1]["owner"] == "0xaaaa"
+    assert by_id[3]["owner"] == "0xbbbb"
 ```
 
-- [ ] **Step 7: Run E2E test, verify it passes**
+- [ ] **Step 3: Run E2E test, verify it passes**
 
 ```bash
 pytest pipeline/tests/test_pipeline_e2e.py -v
@@ -1400,19 +1466,19 @@ pytest pipeline/tests/test_pipeline_e2e.py -v
 
 Expected: 1 passed.
 
-- [ ] **Step 8: Run full test suite to confirm no regressions**
+- [ ] **Step 4: Run full test suite to confirm no regressions**
 
 ```bash
 pytest -v
 ```
 
-Expected: all tests pass (19 total: 4 rpc + 3 scan + 3 traits + 4 rarity + 2 emit + 2 state + 1 e2e — adjust if your counts differ).
+Expected: all tests pass (18 total: 4 rpc + 4 enumerate + 4 traits + 4 rarity + 2 emit + 1 e2e — adjust if your counts differ).
 
-- [ ] **Step 9: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add pipeline/__main__.py pipeline/state.py pipeline/tests/test_state.py pipeline/tests/test_pipeline_e2e.py
-git commit -m "feat(pipeline): orchestrator + state persistence + e2e test"
+git add pipeline/__main__.py pipeline/tests/test_pipeline_e2e.py
+git commit -m "feat(pipeline): orchestrator using holder enumeration + getSeedData"
 ```
 
 ---
@@ -1421,13 +1487,7 @@ git commit -m "feat(pipeline): orchestrator + state persistence + e2e test"
 
 **Goal:** Validate pipeline end-to-end against real chain data and produce the first `data/*.json` artifacts.
 
-- [ ] **Step 1: Set the correct genesis block**
-
-Open https://etherscan.io/address/0x44b28991b167582f18ba0259e0173176ca125505 and find "Contract Creator" line. Note the deployment block.
-
-Edit `pipeline/state.py`, replace `DEFAULT_GENESIS_BLOCK = 22_000_000` with the actual block number.
-
-- [ ] **Step 2: Run a dry run**
+- [ ] **Step 1: Run a dry run against mainnet**
 
 ```bash
 cd /g/claude/upeg-rarity
@@ -1435,17 +1495,24 @@ source .venv/Scripts/activate
 python -m pipeline --dry-run
 ```
 
-Expected: no errors, log line `Dry run: would emit N items at block X`. Note `N` — sanity check it's between 1 and 10,000.
+Expected: no errors, log lines along the lines of:
+- `Enumerating current uPEG holders + holdings`
+- `Got N (id, seed, owner) entries at block X`
+- `Cache hit candidates from previous run: 0` (first run)
+- `Cache hits: 0 / N (0.0%)`
+- `Dry run: would emit N items at block X`
 
-- [ ] **Step 3: Run for real**
+Sanity check `N` is between 100 and 100,000 (Phase 0 saw ~1208 holders × few uPEGs each). The first run will be slow because every (id, seed) needs hook calls — expect 5–30 minutes depending on RPC throughput. Subsequent runs use the cache and are much faster.
+
+- [ ] **Step 2: Run for real**
 
 ```bash
 python -m pipeline
 ```
 
-Expected: `data/upegs.json`, `data/stats.json`, `data/meta.json`, `data/_state.json` all created.
+Expected: `data/upegs.json`, `data/stats.json`, `data/meta.json` all created.
 
-- [ ] **Step 4: Sanity-check the output**
+- [ ] **Step 3: Sanity-check the output**
 
 ```bash
 python -c "import json; d = json.load(open('data/upegs.json')); print('items:', d['total_minted'], 'first item:', d['items'][0])"
@@ -1453,14 +1520,14 @@ python -c "import json; print(json.load(open('data/stats.json'))['trait_frequenc
 ```
 
 Verify:
-- `total_minted` matches step 2 dry run
-- First item has plausible `traits`, non-empty `svg`, ranked `rank=1` is the highest score
-- `trait_frequencies` has reasonable cardinality per trait type
+- `total_minted` matches step 1 dry run
+- First item has 18 trait fields populated (numeric uint8 values), non-empty `svg`, `rank=1` has the highest score
+- `trait_frequencies` has reasonable cardinality per trait type (e.g., `backGroundColor` should have ~6 distinct values per Phase 0)
 
-- [ ] **Step 5: Commit data artifacts**
+- [ ] **Step 4: Commit data artifacts**
 
 ```bash
-git add data/ pipeline/state.py
+git add data/
 git commit -m "data: first mainnet run snapshot"
 ```
 
