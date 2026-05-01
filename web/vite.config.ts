@@ -4,6 +4,7 @@ import react from "@vitejs/plugin-react";
 import fs from "node:fs";
 import path from "node:path";
 
+
 const dataDir = path.resolve(__dirname, "../data");
 
 export default defineConfig({
@@ -27,6 +28,9 @@ export default defineConfig({
     },
   ],
   base: "./",
+  resolve: {
+    alias: { "@": path.resolve(__dirname, "./src") },
+  },
   test: {
     globals: true,
     environment: "jsdom",

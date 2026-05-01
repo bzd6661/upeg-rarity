@@ -1,20 +1,26 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FixedSizeList as List } from "react-window";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { TraitFilters } from "../components/TraitFilters";
 import { FollowPrompt } from "../components/FollowPrompt";
-import { applyFilters, searchById, sortByRank, type TraitFilter } from "../lib/filters";
+import {
+  applyFilters,
+  searchById,
+  sortByRank,
+  type TraitFilter,
+} from "../lib/filters";
 import type { DataBundle } from "../types";
 
 const FOLLOWED_KEY = "upeg-rarity:follow-prompted-v2";
-
-// Subtract reserved height for header + page padding + "Showing" line + search/filters above main column
-const RESERVED_VERTICAL_PX = 200;
-
-function computeListHeight() {
-  if (typeof window === "undefined") return 600;
-  return Math.max(400, window.innerHeight - RESERVED_VERTICAL_PX);
-}
 
 interface Props {
   bundle: DataBundle;
@@ -29,26 +35,22 @@ function rankColor(rank: number): string {
 export function Ranking({ bundle }: Props) {
   const [filter, setFilter] = useState<TraitFilter>({});
   const [query, setQuery] = useState("");
-  const [listHeight, setListHeight] = useState(computeListHeight);
   const [showFollow, setShowFollow] = useState(false);
+  const [listHeight, setListHeight] = useState(600);
+  const containerRef = useRef<HTMLDivElement>(null);
 
+  // Measure available height for the virtualized list via ResizeObserver
   useEffect(() => {
-    const html = document.documentElement;
-    const body = document.body;
-    const prevHtmlOverflow = html.style.overflow;
-    const prevBodyOverflow = body.style.overflow;
-    html.style.overflow = "hidden";
-    body.style.overflow = "hidden";
-    return () => {
-      html.style.overflow = prevHtmlOverflow;
-      body.style.overflow = prevBodyOverflow;
+    if (!containerRef.current) return;
+    const measure = () => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      setListHeight(Math.max(300, rect.height));
     };
-  }, []);
-
-  useEffect(() => {
-    const onResize = () => setListHeight(computeListHeight());
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(containerRef.current);
+    return () => ro.disconnect();
   }, []);
 
   const handleSearchFocus = () => {
@@ -66,109 +68,149 @@ export function Ranking({ bundle }: Props) {
     return sortByRank(applyFilters(bundle.upegs.items, filter));
   }, [bundle, filter, query]);
 
+  const filterPanel = (
+    <>
+      <div className="mb-3">
+        <Input
+          placeholder="Search by ID..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onFocus={handleSearchFocus}
+          className="bg-zinc-900 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-emerald-600"
+        />
+      </div>
+      <TraitFilters
+        trait_frequencies={bundle.stats.trait_frequencies}
+        value={filter}
+        onChange={setFilter}
+      />
+    </>
+  );
+
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)] h-[calc(100vh-120px)]">
-      <aside className="overflow-y-auto pr-1 lg:max-h-full">
-        {/* Search box */}
-        <div className="relative mb-4">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
-            🔍
-          </span>
-          <input
-            type="text"
+    <div className="grid h-full grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)]">
+      {/* Sidebar — desktop */}
+      <aside className="hidden lg:flex lg:flex-col border-r border-border p-4 overflow-hidden">
+        <div className="mb-3">
+          <Input
             placeholder="Search by ID..."
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-900 py-2 pl-9 pr-3 text-sm text-zinc-100 placeholder-zinc-500 transition-colors focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={handleSearchFocus}
+            className="bg-zinc-900 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-emerald-600"
           />
         </div>
-        <TraitFilters trait_frequencies={bundle.stats.trait_frequencies} value={filter} onChange={setFilter} />
+        <ScrollArea className="flex-1">
+          <TraitFilters
+            trait_frequencies={bundle.stats.trait_frequencies}
+            value={filter}
+            onChange={setFilter}
+          />
+        </ScrollArea>
       </aside>
-      <main className="flex min-h-0 flex-col">
-        <p className="mb-4 text-sm text-zinc-400">
-          Showing {filtered.length} of {bundle.upegs.total_minted}
+
+      {/* Main column */}
+      <div className="flex min-h-0 flex-col p-4">
+        {/* Mobile filter sheet trigger */}
+        <div className="mb-3 flex items-center gap-3 lg:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm">
+                Filters
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-80 bg-background">
+              <div className="mt-6">{filterPanel}</div>
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        <p className="mb-3 text-sm text-zinc-400">
+          Showing {filtered.length} of{" "}
+          {bundle.upegs.total_minted.toLocaleString()}
         </p>
-        <div className="flex-1 min-h-0">
-        <List height={listHeight} itemCount={filtered.length} itemSize={88} width="100%">
-          {({ index, style }) => {
-            const item = filtered[index];
-            const isTop10 = item.rank <= 10;
-            const isTop100 = item.rank <= 100;
-            return (
-              <Link
-                to={`/upeg/${item.id}`}
-                style={style}
-                className="flex items-center gap-6 border-b border-zinc-800/60 px-2 transition-all duration-100 hover:bg-zinc-900 hover:shadow-md cursor-pointer"
-              >
-                {/* Left zone: rank + SVG + ID/score */}
-                <div className="flex shrink-0 items-center gap-4">
-                  {/* Rank */}
-                  <span
-                    className={`w-14 shrink-0 text-right font-mono text-sm font-semibold ${rankColor(item.rank)}`}
-                  >
-                    #{item.rank}
-                  </span>
 
-                  {/* SVG */}
-                  <div
-                    className="h-14 w-14 shrink-0 rounded-md border border-zinc-700 bg-zinc-900 p-0.5 shadow-sm [image-rendering:pixelated]"
-                    dangerouslySetInnerHTML={{ __html: item.svg }}
-                  />
-
-                  {/* ID */}
-                  <div className="min-w-0">
-                    <div className="font-mono text-sm font-semibold text-zinc-100">
-                      #{item.id}
+        <div
+          ref={containerRef}
+          className="flex-1 min-h-0 rounded-lg border border-border overflow-hidden"
+        >
+          <List
+            height={listHeight}
+            itemCount={filtered.length}
+            itemSize={88}
+            width="100%"
+          >
+            {({ index, style }) => {
+              const item = filtered[index];
+              const isTop100 = item.rank <= 100;
+              return (
+                <Link
+                  to={`/upeg/${item.id}`}
+                  style={style}
+                  className="flex items-center gap-6 border-b border-border px-2 transition-colors hover:bg-accent/40 cursor-pointer"
+                >
+                  {/* Rank + SVG + ID */}
+                  <div className="flex shrink-0 items-center gap-4">
+                    <span
+                      className={`w-14 shrink-0 text-right font-mono text-sm font-semibold ${rankColor(item.rank)}`}
+                    >
+                      #{item.rank}
+                    </span>
+                    <div
+                      className="h-14 w-14 shrink-0 rounded-md border border-border bg-zinc-900 p-0.5 [image-rendering:pixelated]"
+                      dangerouslySetInnerHTML={{ __html: item.svg }}
+                    />
+                    <div className="min-w-0">
+                      <div className="font-mono text-sm font-semibold text-zinc-100">
+                        #{item.id}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Right zone: tags, right-aligned, fills remaining space */}
-                <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-1.5 text-xs">
-                  {item.traits.n_distinct_colors !== undefined && (
-                    <span
-                      className={`flex-shrink-0 rounded-full border px-2.5 py-0.5 ${
-                        isTop10
-                          ? "border-emerald-500 bg-emerald-950/60 text-emerald-300"
-                          : "border-emerald-800 bg-emerald-950/30 text-emerald-400"
-                      }`}
-                    >
-                      {item.traits.n_distinct_colors} colors
-                    </span>
-                  )}
-                  {item.traits.n_distinct_colors === 2 && (
-                    <span className="flex-shrink-0 rounded-full border border-emerald-500 bg-emerald-900/60 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-300">
-                      Bichrome
-                    </span>
-                  )}
-                  {[
-                    ["hair", "has_hair"],
-                    ["horn", "has_horn"],
-                    ["wings", "has_wings"],
-                    ["tail", "has_tail"],
-                    ["accessories", "has_accessories"],
-                  ]
-                    .filter(([, key]) => item.traits[key] === 1)
-                    .map(([label]) => (
-                      <span
-                        key={label}
-                        className={`flex-shrink-0 rounded px-2.5 py-0.5 ${
-                          isTop100
-                            ? "bg-zinc-700 text-zinc-200"
-                            : "bg-zinc-800 text-zinc-400"
-                        }`}
+                  {/* Tags */}
+                  <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-1.5 text-xs">
+                    {item.traits.n_distinct_colors !== undefined && (
+                      <Badge
+                        variant="outline"
+                        className="border-emerald-700/60 bg-emerald-950/40 text-emerald-300"
                       >
-                        {label}
-                      </span>
-                    ))}
-                </div>
-              </Link>
-            );
-          }}
-        </List>
+                        {item.traits.n_distinct_colors} colors
+                      </Badge>
+                    )}
+                    {item.traits.n_distinct_colors === 2 && (
+                      <Badge className="bg-emerald-700 hover:bg-emerald-700 text-white">
+                        Bichrome
+                      </Badge>
+                    )}
+                    {[
+                      ["hair", "has_hair"],
+                      ["horn", "has_horn"],
+                      ["wings", "has_wings"],
+                      ["tail", "has_tail"],
+                      ["accessories", "has_accessories"],
+                    ]
+                      .filter(([, key]) => item.traits[key] === 1)
+                      .map(([label]) => (
+                        <Badge
+                          key={label}
+                          variant="secondary"
+                          className={
+                            isTop100
+                              ? "bg-zinc-700 text-zinc-200"
+                              : "bg-zinc-800 text-zinc-400"
+                          }
+                        >
+                          {label}
+                        </Badge>
+                      ))}
+                  </div>
+                </Link>
+              );
+            }}
+          </List>
         </div>
-      </main>
+      </div>
+
       <FollowPrompt open={showFollow} onClose={() => setShowFollow(false)} />
     </div>
   );

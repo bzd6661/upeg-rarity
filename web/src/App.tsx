@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link, Route, Routes, useLocation } from "react-router-dom";
+import { Link, NavLink, Route, Routes } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 import { loadBundle } from "./lib/data";
 import { Ranking } from "./routes/Ranking";
 import { Detail } from "./routes/Detail";
@@ -9,25 +10,12 @@ import { Sets } from "./routes/Sets";
 import { SetDetail } from "./routes/SetDetail";
 import type { DataBundle } from "./types";
 
-function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
-  const { pathname } = useLocation();
-  const active = pathname === to;
-  return (
-    <Link
-      to={to}
-      className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-        active
-          ? "border-b-2 border-emerald-500 text-emerald-400"
-          : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
-      }`}
-    >
-      {children}
-    </Link>
-  );
-}
-
-function formatNumber(n: number): string {
-  return n.toLocaleString();
+function navClass({ isActive }: { isActive: boolean }) {
+  return `text-sm transition-colors ${
+    isActive
+      ? "text-emerald-400 border-b-2 border-emerald-400 pb-0.5"
+      : "text-zinc-400 hover:text-zinc-100"
+  }`;
 }
 
 function formatDate(iso: string): string {
@@ -53,51 +41,52 @@ export default function App() {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col">
-      {/* Sticky header */}
-      <header className="sticky top-0 z-10 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 py-3">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="text-xl" aria-hidden="true">🦄</span>
-            <div>
-              <span className="text-lg font-bold tracking-tight text-zinc-100">uPEG Rarity</span>
-              {bundle && (
-                <span className="ml-2 text-xs text-zinc-500">
-                  {formatNumber(bundle.meta.total_minted)} uPEGs · block {formatNumber(bundle.meta.block)}
-                </span>
-              )}
-            </div>
-          </Link>
-          <nav className="flex items-center gap-1">
-            <NavLink to="/">Ranking</NavLink>
-            <NavLink to="/sets">Sets</NavLink>
-            <NavLink to="/stats">Stats</NavLink>
-            <a
-              href="https://x.com/tiger_web3"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-700/60 bg-emerald-950/40 px-3 py-1 text-xs font-semibold text-emerald-300 transition hover:border-emerald-500 hover:bg-emerald-900/50 hover:text-emerald-100"
-            >
-              <span aria-hidden>𝕏</span>
-              <span>Follow</span>
-            </a>
-          </nav>
-        </div>
+    <div className="flex h-screen flex-col bg-background text-foreground">
+      <header className="sticky top-0 z-40 flex shrink-0 items-center justify-between border-b border-border bg-background/80 px-6 py-3 backdrop-blur">
+        <Link to="/" className="flex items-center gap-3">
+          <span className="text-2xl" aria-hidden="true">🦄</span>
+          <div>
+            <div className="text-lg font-bold leading-none">uPEG Rarity</div>
+            {bundle && (
+              <div className="mt-1 text-[11px] text-zinc-500">
+                {bundle.meta.total_minted.toLocaleString()} uPEGs · block{" "}
+                {bundle.meta.block.toLocaleString()}
+              </div>
+            )}
+          </div>
+        </Link>
+        <nav className="flex items-center gap-6">
+          <NavLink to="/" end className={navClass}>
+            Ranking
+          </NavLink>
+          <NavLink to="/sets" className={navClass}>
+            Sets
+          </NavLink>
+          <NavLink to="/stats" className={navClass}>
+            Stats
+          </NavLink>
+          <a
+            href="https://x.com/tiger_web3"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-700/60 bg-emerald-950/40 px-3 py-1 text-xs font-semibold text-emerald-300 transition hover:border-emerald-500 hover:bg-emerald-900/50 hover:text-emerald-100"
+          >
+            <span aria-hidden>𝕏</span>
+            <span>Follow</span>
+          </a>
+        </nav>
       </header>
 
-      {/* Main content */}
-      <main className="mx-auto w-full max-w-[1600px] flex-1 px-6 py-8">
+      <main className="min-h-0 flex-1 overflow-hidden">
         {error && (
-          <div className="rounded-lg border border-red-800 bg-red-950/40 px-4 py-3 text-red-400">
+          <div className="mx-auto max-w-2xl p-8 text-red-400">
             Failed to load data: {error}
           </div>
         )}
         {!bundle && !error && (
-          <div className="flex items-center justify-center py-24">
-            <div className="flex flex-col items-center gap-3 text-zinc-500">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-emerald-500" />
-              <span className="text-sm">Loading…</span>
-            </div>
+          <div className="mx-auto max-w-7xl space-y-3 p-6">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-64 w-full" />
           </div>
         )}
         {bundle && (
@@ -112,9 +101,8 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
       {bundle && (
-        <footer className="border-t border-zinc-900 py-4 text-center text-xs text-zinc-600">
+        <footer className="shrink-0 border-t border-border py-3 text-center text-xs text-zinc-600">
           Updated {formatDate(bundle.meta.generated_at)}
         </footer>
       )}
