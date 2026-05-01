@@ -12,3 +12,9 @@ test("omits frequency when not provided", () => {
   render(<TraitChip label="color" value="red" />);
   expect(screen.queryByText(/%/)).not.toBeInTheDocument();
 });
+
+test("applies derived styling when derived prop is set", () => {
+  const { container } = render(<TraitChip label="has_wings" value={1} derived />);
+  const chip = container.querySelector("span");
+  expect(chip?.className).toContain("emerald");
+});

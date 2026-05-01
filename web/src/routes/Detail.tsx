@@ -27,18 +27,46 @@ export function Detail({ bundle }: Props) {
       <div>
         <h2 className="font-mono text-3xl">uPEG #{item.id}</h2>
         <p className="mt-1 text-zinc-400">Rank {item.rank} · Score {item.score.toFixed(3)}</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {Object.entries(item.traits).map(([k, v]) => (
-            <TraitChip
-              key={k}
-              label={k}
-              value={v}
-              frequency={bundle.stats.trait_frequencies[k]?.[String(v)] != null
-                ? bundle.stats.trait_frequencies[k][String(v)] / bundle.stats.total_minted
-                : undefined}
-            />
-          ))}
-        </div>
+        {(() => {
+          const allEntries = Object.entries(item.traits);
+          const isDerived = (k: string) => k.startsWith("has_") || k.startsWith("n_");
+          const derivedEntries = allEntries.filter(([k]) => isDerived(k));
+          const onChainEntries = allEntries.filter(([k]) => !isDerived(k));
+
+          const freqOf = (k: string, v: string | number) => {
+            const slot = bundle.stats.trait_frequencies[k];
+            if (!slot) return undefined;
+            const count = slot[String(v)];
+            return count != null ? count / bundle.stats.total_minted : undefined;
+          };
+
+          return (
+            <>
+              {derivedEntries.length > 0 && (
+                <div className="mt-4">
+                  <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                    Special Attributes
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {derivedEntries.map(([k, v]) => (
+                      <TraitChip key={k} label={k} value={v} frequency={freqOf(k, v)} derived />
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="mt-4">
+                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                  On-chain Traits
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {onChainEntries.map(([k, v]) => (
+                    <TraitChip key={k} label={k} value={v} frequency={freqOf(k, v)} />
+                  ))}
+                </div>
+              </div>
+            </>
+          );
+        })()}
         <p className="mt-6 text-sm text-zinc-400">
           Holder:{" "}
           <Link className="font-mono underline" to={`/holder/${item.owner}`}>
