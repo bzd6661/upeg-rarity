@@ -5,6 +5,8 @@ import { Ranking } from "./routes/Ranking";
 import { Detail } from "./routes/Detail";
 import { Holder } from "./routes/Holder";
 import { Stats } from "./routes/Stats";
+import { Sets } from "./routes/Sets";
+import { SetDetail } from "./routes/SetDetail";
 import type { DataBundle } from "./types";
 
 function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
@@ -68,6 +70,7 @@ export default function App() {
           </Link>
           <nav className="flex gap-1">
             <NavLink to="/">Ranking</NavLink>
+            <NavLink to="/sets">Sets</NavLink>
             <NavLink to="/stats">Stats</NavLink>
           </nav>
         </div>
@@ -94,6 +97,8 @@ export default function App() {
             <Route path="/upeg/:id" element={<Detail bundle={bundle} />} />
             <Route path="/holder/:addr" element={<Holder bundle={bundle} />} />
             <Route path="/stats" element={<Stats bundle={bundle} />} />
+            <Route path="/sets" element={<Sets bundle={bundle} />} />
+            <Route path="/sets/:name" element={<SetDetail bundle={bundle} />} />
           </Routes>
         )}
       </main>
