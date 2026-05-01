@@ -75,7 +75,7 @@ export function Detail({ bundle }: Props) {
         ← Back to ranking
       </Link>
 
-      <div className="mt-4 grid gap-8 md:grid-cols-[360px_1fr]">
+      <div className="mt-4 grid gap-8 md:grid-cols-[360px_minmax(0,1fr)]">
         {/* SVG container */}
         <div
           className={`aspect-square w-full overflow-hidden rounded-xl border bg-zinc-900 p-2 [image-rendering:pixelated] ${
@@ -87,7 +87,7 @@ export function Detail({ bundle }: Props) {
         />
 
         {/* Trait panel */}
-        <div>
+        <div className="max-w-3xl">
           {/* Heading + rank badge */}
           <div className="flex items-start justify-between gap-4">
             <div>

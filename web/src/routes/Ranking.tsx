@@ -28,7 +28,7 @@ export function Ranking({ bundle }: Props) {
   }, [bundle, filter, query]);
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_1fr]">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
       <aside className="lg:sticky lg:top-[65px] lg:self-start">
         {/* Search box */}
         <div className="relative mb-4">
@@ -49,7 +49,7 @@ export function Ranking({ bundle }: Props) {
         <p className="mb-3 text-xs font-medium text-zinc-500">
           Showing {filtered.length} of {bundle.upegs.total_minted}
         </p>
-        <List height={600} itemCount={filtered.length} itemSize={80} width="100%">
+        <List height={600} itemCount={filtered.length} itemSize={88} width="100%">
           {({ index, style }) => {
             const item = filtered[index];
             const isTop10 = item.rank <= 10;
@@ -58,36 +58,39 @@ export function Ranking({ bundle }: Props) {
               <Link
                 to={`/upeg/${item.id}`}
                 style={style}
-                className="flex items-center gap-4 border-b border-zinc-800/60 px-2 transition-all duration-100 hover:bg-zinc-900 hover:shadow-md cursor-pointer"
+                className="flex items-center gap-6 border-b border-zinc-800/60 px-2 transition-all duration-100 hover:bg-zinc-900 hover:shadow-md cursor-pointer"
               >
-                {/* Rank */}
-                <span
-                  className={`w-14 shrink-0 text-right font-mono text-sm font-semibold ${rankColor(item.rank)}`}
-                >
-                  #{item.rank}
-                </span>
+                {/* Left zone: rank + SVG + ID/score */}
+                <div className="flex shrink-0 items-center gap-4">
+                  {/* Rank */}
+                  <span
+                    className={`w-14 shrink-0 text-right font-mono text-sm font-semibold ${rankColor(item.rank)}`}
+                  >
+                    #{item.rank}
+                  </span>
 
-                {/* SVG */}
-                <div
-                  className="h-14 w-14 shrink-0 rounded-md border border-zinc-700 bg-zinc-900 p-0.5 shadow-sm [image-rendering:pixelated]"
-                  dangerouslySetInnerHTML={{ __html: item.svg }}
-                />
+                  {/* SVG */}
+                  <div
+                    className="h-14 w-14 shrink-0 rounded-md border border-zinc-700 bg-zinc-900 p-0.5 shadow-sm [image-rendering:pixelated]"
+                    dangerouslySetInnerHTML={{ __html: item.svg }}
+                  />
 
-                {/* ID + Score stacked */}
-                <div className="min-w-0 flex-1">
-                  <div className="font-mono text-sm font-semibold text-zinc-100">
-                    #{item.id}
-                  </div>
-                  <div className="text-xs text-zinc-500">
-                    score {item.score.toFixed(2)}
+                  {/* ID + Score stacked */}
+                  <div className="min-w-0">
+                    <div className="font-mono text-sm font-semibold text-zinc-100">
+                      #{item.id}
+                    </div>
+                    <div className="text-xs text-zinc-500">
+                      score {item.score.toFixed(2)}
+                    </div>
                   </div>
                 </div>
 
-                {/* Tags */}
-                <div className="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-1.5 text-xs">
+                {/* Right zone: tags, right-aligned, fills remaining space */}
+                <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-1.5 text-xs">
                   {item.traits.n_distinct_colors !== undefined && (
                     <span
-                      className={`rounded-full border px-2.5 py-0.5 ${
+                      className={`flex-shrink-0 rounded-full border px-2.5 py-0.5 ${
                         isTop10
                           ? "border-emerald-500 bg-emerald-950/60 text-emerald-300"
                           : "border-emerald-800 bg-emerald-950/30 text-emerald-400"
@@ -97,7 +100,7 @@ export function Ranking({ bundle }: Props) {
                     </span>
                   )}
                   {item.traits.n_distinct_colors === 2 && (
-                    <span className="rounded-full border border-emerald-500 bg-emerald-900/60 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-300">
+                    <span className="flex-shrink-0 rounded-full border border-emerald-500 bg-emerald-900/60 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-300">
                       Bichrome
                     </span>
                   )}
@@ -112,7 +115,7 @@ export function Ranking({ bundle }: Props) {
                     .map(([label]) => (
                       <span
                         key={label}
-                        className={`rounded px-2.5 py-0.5 ${
+                        className={`flex-shrink-0 rounded px-2.5 py-0.5 ${
                           isTop100
                             ? "bg-zinc-700 text-zinc-200"
                             : "bg-zinc-800 text-zinc-400"

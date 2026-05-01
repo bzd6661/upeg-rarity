@@ -54,7 +54,7 @@ export default function App() {
     <div className="flex min-h-screen flex-col">
       {/* Sticky header */}
       <header className="sticky top-0 z-10 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 py-3">
           <Link to="/" className="flex items-center gap-2">
             <span className="text-xl" aria-hidden="true">🦄</span>
             <div>
@@ -74,7 +74,7 @@ export default function App() {
       </header>
 
       {/* Main content */}
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
+      <main className="mx-auto w-full max-w-[1600px] flex-1 px-6 py-8">
         {error && (
           <div className="rounded-lg border border-red-800 bg-red-950/40 px-4 py-3 text-red-400">
             Failed to load data: {error}
