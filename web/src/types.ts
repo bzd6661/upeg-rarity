@@ -4,15 +4,18 @@ export interface Upeg {
   traits: Record<string, string | number>;
   score: number;
   rank: number;
-  svg: string;
+  svg: string;  // Populated client-side from svgs.json after merging
 }
 
 export interface UpegsFile {
   generated_at: string;
   block: number;
   total_minted: number;
-  items: Upeg[];
+  items: Omit<Upeg, "svg">[];  // SVG comes from svgs.json
 }
+
+// New
+export type SvgsFile = Record<string, string>;  // { "1": "<svg/>", ... }
 
 export interface StatsFile {
   total_minted: number;

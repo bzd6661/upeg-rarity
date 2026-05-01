@@ -1,11 +1,12 @@
-import type { DataBundle, MetaFile, StatsFile, Upeg, UpegsFile } from "../types";
+import type { DataBundle, MetaFile, StatsFile, Upeg, UpegsFile, SvgsFile } from "../types";
 
-const CACHE_KEY = "upeg-rarity:bundle:v1";
+const CACHE_KEY = "upeg-rarity:bundle:v2";
 
 interface CacheEntry {
   hash: string;
   upegs: UpegsFile;
   stats: StatsFile;
+  svgs: SvgsFile;
 }
 
 let inFlight: Promise<DataBundle> | null = null;
@@ -49,6 +50,13 @@ function writeCache(entry: CacheEntry) {
   }
 }
 
+function mergeSvgs(items: Omit<Upeg, "svg">[], svgs: SvgsFile): Upeg[] {
+  return items.map((item) => ({
+    ...item,
+    svg: svgs[String(item.id)] ?? "",
+  }));
+}
+
 export async function loadBundle(): Promise<DataBundle> {
   if (inFlight) return inFlight;
   inFlight = (async () => {
@@ -56,18 +64,22 @@ export async function loadBundle(): Promise<DataBundle> {
     const cached = readCache();
     let upegs: UpegsFile;
     let stats: StatsFile;
+    let svgs: SvgsFile;
     if (cached && cached.hash === meta.data_hash) {
       upegs = cached.upegs;
       stats = cached.stats;
+      svgs = cached.svgs;
     } else {
-      [upegs, stats] = await Promise.all([
+      [upegs, stats, svgs] = await Promise.all([
         fetchJson<UpegsFile>("/upegs.json"),
         fetchJson<StatsFile>("/stats.json"),
+        fetchJson<SvgsFile>("/svgs.json"),
       ]);
-      writeCache({ hash: meta.data_hash, upegs, stats });
+      writeCache({ hash: meta.data_hash, upegs, stats, svgs });
     }
-    const { byId, byOwner } = indexUpegs(upegs.items);
-    return { upegs, stats, meta, byId, byOwner };
+    const merged = mergeSvgs(upegs.items, svgs);
+    const { byId, byOwner } = indexUpegs(merged);
+    return { upegs: { ...upegs, items: merged } as UpegsFile, stats, meta, byId, byOwner };
   })();
   inFlight.catch(() => { inFlight = null; });
   return inFlight;
