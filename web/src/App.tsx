@@ -68,10 +68,19 @@ export default function App() {
               )}
             </div>
           </Link>
-          <nav className="flex gap-1">
+          <nav className="flex items-center gap-1">
             <NavLink to="/">Ranking</NavLink>
             <NavLink to="/sets">Sets</NavLink>
             <NavLink to="/stats">Stats</NavLink>
+            <a
+              href="https://x.com/tiger_web3"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-700/60 bg-emerald-950/40 px-3 py-1 text-xs font-semibold text-emerald-300 transition hover:border-emerald-500 hover:bg-emerald-900/50 hover:text-emerald-100"
+            >
+              <span aria-hidden>𝕏</span>
+              <span>Follow</span>
+            </a>
           </nav>
         </div>
       </header>

@@ -2,18 +2,11 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { FixedSizeList as List } from "react-window";
 import { TraitFilters } from "../components/TraitFilters";
+import { FollowPrompt } from "../components/FollowPrompt";
 import { applyFilters, searchById, sortByRank, type TraitFilter } from "../lib/filters";
 import type { DataBundle } from "../types";
 
-const FOLLOW_URL = "https://twitter.com/intent/follow?screen_name=tiger_web3";
-const SESSION_KEY = "upeg-rarity:follow-prompted";
-
-function maybePromptFollow() {
-  if (typeof window === "undefined") return;
-  if (window.sessionStorage.getItem(SESSION_KEY)) return;
-  window.sessionStorage.setItem(SESSION_KEY, "1");
-  window.open(FOLLOW_URL, "_blank", "width=600,height=540,noopener,noreferrer");
-}
+const FOLLOWED_KEY = "upeg-rarity:follow-prompted-v2";
 
 interface Props {
   bundle: DataBundle;
@@ -28,6 +21,14 @@ function rankColor(rank: number): string {
 export function Ranking({ bundle }: Props) {
   const [filter, setFilter] = useState<TraitFilter>({});
   const [query, setQuery] = useState("");
+  const [showFollow, setShowFollow] = useState(false);
+
+  const handleSearchFocus = () => {
+    if (typeof window === "undefined") return;
+    if (window.localStorage.getItem(FOLLOWED_KEY)) return;
+    window.localStorage.setItem(FOLLOWED_KEY, "1");
+    setShowFollow(true);
+  };
 
   const filtered = useMemo(() => {
     if (query.trim()) {
@@ -51,11 +52,12 @@ export function Ranking({ bundle }: Props) {
             className="w-full rounded-lg border border-zinc-700 bg-zinc-900 py-2 pl-9 pr-3 text-sm text-zinc-100 placeholder-zinc-500 transition-colors focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            onFocus={maybePromptFollow}
+            onFocus={handleSearchFocus}
           />
         </div>
         <TraitFilters trait_frequencies={bundle.stats.trait_frequencies} value={filter} onChange={setFilter} />
       </aside>
+      <FollowPrompt open={showFollow} onClose={() => setShowFollow(false)} />
       <main>
         <p className="mb-3 text-xs font-medium text-zinc-500">
           Showing {filtered.length} of {bundle.upegs.total_minted}
