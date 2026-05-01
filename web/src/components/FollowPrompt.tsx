@@ -20,13 +20,7 @@ export function FollowPrompt({ open, onClose }: Props) {
         <p className="mt-2 text-sm text-zinc-400">
           One follow keeps this site free and updated. Search opens after.
         </p>
-        <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <button
-            onClick={onClose}
-            className="rounded-md border border-zinc-700 px-4 py-2 text-sm text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
-          >
-            Skip
-          </button>
+        <div className="mt-5 flex justify-end">
           <a
             href={FOLLOW_URL}
             target="_blank"

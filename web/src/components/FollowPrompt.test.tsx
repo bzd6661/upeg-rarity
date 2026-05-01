@@ -10,5 +10,5 @@ test("renders modal when open", () => {
   render(<FollowPrompt open={true} onClose={() => {}} />);
   expect(screen.getByText("Follow to start searching")).toBeInTheDocument();
   expect(screen.getByText(/Follow @tiger_web3/)).toBeInTheDocument();
-  expect(screen.getByText("Skip")).toBeInTheDocument();
+  expect(screen.queryByText("Skip")).not.toBeInTheDocument();
 });
