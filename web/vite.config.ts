@@ -13,7 +13,7 @@ export default defineConfig({
       name: "serve-data-files",
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
-          if (req.url && /^\/(upegs|stats|meta)\.json$/.test(req.url)) {
+          if (req.url && /^\/(upegs|svgs|stats|meta)\.json$/.test(req.url)) {
             const filePath = path.join(dataDir, req.url);
             if (fs.existsSync(filePath)) {
               res.setHeader("content-type", "application/json");
