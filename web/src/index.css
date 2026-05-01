@@ -5,4 +5,16 @@
 body {
   @apply bg-zinc-950 text-zinc-100 antialiased;
   font-family: system-ui, -apple-system, sans-serif;
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background-color: #059669;
+  color: #fff;
+}
+
+/* Tabular numerals for monospace/numeric contexts */
+.font-mono,
+[class*="tabular"] {
+  font-feature-settings: "tnum";
 }

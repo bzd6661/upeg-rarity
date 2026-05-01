@@ -63,6 +63,10 @@ export function TraitFilters({ trait_frequencies, value, onChange }: Props) {
     onChange({ ...value, [cat]: next });
   };
 
+  const hasActiveFilters = Object.values(value).some((arr) => arr.length > 0);
+
+  const resetAll = () => onChange({});
+
   const renderCategory = (cat: string) => {
     const vals = trait_frequencies[cat];
     if (!vals) return null;
@@ -76,19 +80,19 @@ export function TraitFilters({ trait_frequencies, value, onChange }: Props) {
     });
     return (
       <div key={cat}>
-        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">
+        <h3 className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
           {label}
         </h3>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1">
           {sorted.map(([raw, count]) => {
             const checked = (value[cat] ?? []).includes(raw);
             return (
               <label
                 key={raw}
-                className={`cursor-pointer rounded border px-2 py-0.5 text-xs ${
+                className={`cursor-pointer rounded border px-2 py-0.5 text-xs transition-colors ${
                   checked
                     ? "border-emerald-500 bg-emerald-900/40 text-emerald-100"
-                    : "border-zinc-700 bg-zinc-900 text-zinc-300"
+                    : "border-zinc-700 bg-zinc-900 text-zinc-300 hover:border-zinc-600"
                 }`}
               >
                 <input
@@ -115,15 +119,23 @@ export function TraitFilters({ trait_frequencies, value, onChange }: Props) {
 
   return (
     <div className="space-y-5">
+      {hasActiveFilters && (
+        <button
+          onClick={resetAll}
+          className="text-xs text-emerald-500 hover:text-emerald-300 transition-colors"
+        >
+          ✕ Reset all filters
+        </button>
+      )}
       {featured.map(renderCategory)}
 
       {more.length > 0 && (
         <div className="pt-2">
           <button
             onClick={() => setShowMore((v) => !v)}
-            className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-300"
+            className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-300 transition-colors"
           >
-            <span>{showMore ? "−" : "+"}</span>
+            <span>{showMore ? "▾" : "▸"}</span>
             <span>More filters ({more.length})</span>
           </button>
           {showMore && <div className="mt-3 space-y-5">{more.map(renderCategory)}</div>}
