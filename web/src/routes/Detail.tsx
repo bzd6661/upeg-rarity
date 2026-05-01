@@ -92,9 +92,6 @@ export function Detail({ bundle }: Props) {
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="font-mono text-4xl font-bold text-zinc-100">uPEG #{item.id}</h2>
-              <p className="mt-1 font-mono text-sm text-zinc-400">
-                Score {item.score.toFixed(2)}
-              </p>
             </div>
             <div
               className={`flex shrink-0 flex-col items-center rounded-lg border px-3 py-2 ${

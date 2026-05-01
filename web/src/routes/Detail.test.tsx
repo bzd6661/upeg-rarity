@@ -12,7 +12,7 @@ const bundle: DataBundle = {
   byOwner: new Map(),
 };
 
-test("renders id, rank, score, holder", () => {
+test("renders id, rank, holder", () => {
   render(
     <MemoryRouter initialEntries={["/upeg/7"]}>
       <Routes>

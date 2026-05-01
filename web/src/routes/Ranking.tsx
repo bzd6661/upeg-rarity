@@ -75,13 +75,10 @@ export function Ranking({ bundle }: Props) {
                     dangerouslySetInnerHTML={{ __html: item.svg }}
                   />
 
-                  {/* ID + Score stacked */}
+                  {/* ID */}
                   <div className="min-w-0">
                     <div className="font-mono text-sm font-semibold text-zinc-100">
                       #{item.id}
-                    </div>
-                    <div className="text-xs text-zinc-500">
-                      score {item.score.toFixed(2)}
                     </div>
                   </div>
                 </div>
