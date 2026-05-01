@@ -54,7 +54,10 @@ def test_extract_traits_calls_hook_and_decodes():
     w3 = _FakeW3(_FakeHook({seed: meta}, {}))
     result = extract_traits(w3, seed)
     assert result["backGroundColor"] == 0
-    assert result["eyesColor"] == 17
+    # eyesColor is at position 12 per the corrected TRAIT_FIELDS (Etherscan ABI)
+    assert result["eyesColor"] == 12
+    # tailColor is at position 17 per the corrected TRAIT_FIELDS
+    assert result["tailColor"] == 17
     assert len(result) == 18
 
 
