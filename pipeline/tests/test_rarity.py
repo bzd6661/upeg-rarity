@@ -1,11 +1,12 @@
-"""Tests for pipeline.rarity — Information Content scoring + ranking."""
+"""Tests for pipeline.rarity — IC scoring + tier-based ranking."""
 import math
 import pytest
 from pipeline.rarity import (
+    N_DISTINCT_COLORS_TIERS,
+    TRAIT_WEIGHTS,
     compute_trait_frequencies,
     compute_information_content,
     rank_collection,
-    TRAIT_WEIGHTS,
 )
 
 
@@ -22,7 +23,6 @@ def test_frequencies_count_per_trait_value():
 
 
 def test_ic_for_unique_trait_is_log2_of_n():
-    # 3 items, one with unique color → -log2(1/3)
     items = [
         {"id": 1, "traits": {"color": "rare"}},
         {"id": 2, "traits": {"color": "common"}},
@@ -35,71 +35,95 @@ def test_ic_for_unique_trait_is_log2_of_n():
     assert ic_common == pytest.approx(math.log2(1.5))
 
 
-def test_rank_collection_assigns_dense_ranks_descending_by_score():
-    items = [
-        {"id": 1, "traits": {"color": "rare"}},
-        {"id": 2, "traits": {"color": "common"}},
-        {"id": 3, "traits": {"color": "common"}},
-    ]
-    ranked = rank_collection(items)
-    by_id = {r["id"]: r for r in ranked}
-    assert by_id[1]["rank"] == 1  # rarest
-    assert by_id[2]["rank"] == 2
-    assert by_id[3]["rank"] == 2  # tied
-    assert by_id[1]["score"] > by_id[2]["score"]
-
-
-def test_rank_handles_empty_collection():
-    assert rank_collection([]) == []
-
-
-def test_trait_weights_zero_excludes_from_score():
+def test_color_slot_traits_excluded_from_ic():
     items = [
         {"id": 1, "traits": {"bodyColor": "rare", "horn": "rare"}},
         {"id": 2, "traits": {"bodyColor": "common", "horn": "common"}},
         {"id": 3, "traits": {"bodyColor": "common", "horn": "common"}},
     ]
     freqs = compute_trait_frequencies(items)
-    # bodyColor has weight 0 → contributes nothing. Only horn drives the score.
+    # bodyColor weight=0 → only horn drives the score
     ic = compute_information_content(items[0]["traits"], freqs)
     assert ic == pytest.approx(math.log2(3))
 
 
-def test_n_distinct_colors_uses_value_bonus_not_ic():
-    # Even though both populations have the same frequency (1/3), the bonus
-    # values differ because they're hardcoded by value, not derived from IC.
-    items_2color = [
+def test_n_distinct_colors_excluded_from_ic():
+    # n_distinct_colors weight=0 — its rarity comes from tier ordering, not IC
+    items = [
         {"id": 1, "traits": {"n_distinct_colors": 2}},
         {"id": 2, "traits": {"n_distinct_colors": 5}},
         {"id": 3, "traits": {"n_distinct_colors": 5}},
     ]
-    freqs = compute_trait_frequencies(items_2color)
-    ic_2 = compute_information_content(items_2color[0]["traits"], freqs)
-    ic_5 = compute_information_content(items_2color[1]["traits"], freqs)
-    # n=2 → 50.0 (bonus), n=5 → 0 (no bonus despite being equally frequent)
-    assert ic_2 == pytest.approx(50.0)
-    assert ic_5 == pytest.approx(0.0)
+    freqs = compute_trait_frequencies(items)
+    ic = compute_information_content(items[0]["traits"], freqs)
+    assert ic == pytest.approx(0.0)
 
 
-def test_n_distinct_colors_bonus_ordering():
-    # Verify the 2 < 3 < 7 < {4,5,6} priority encoded by user
-    from pipeline.rarity import TRAIT_VALUE_BONUS
-    bonus = TRAIT_VALUE_BONUS["n_distinct_colors"]
-    assert bonus[2] > bonus[3] > bonus[7]
-    # 4, 5, 6 not in dict → 0 bonus
-    assert 4 not in bonus
-    assert 5 not in bonus
-    assert 6 not in bonus
+def test_tier_ordering_strict_2_then_3_then_7():
+    # Construct items where 7-color has high IC and 3-color has low IC.
+    # Strict tier ordering must still place ALL 3-colors before any 7-color.
+    items = [
+        # 7-color, otherwise rare → high IC
+        {"id": 1, "traits": {"n_distinct_colors": 7, "horn": "ultra_rare"}},
+        # 3-color, common → low IC
+        {"id": 2, "traits": {"n_distinct_colors": 3, "horn": "common"}},
+        # Filler so frequencies make sense
+        {"id": 3, "traits": {"n_distinct_colors": 7, "horn": "common"}},
+        {"id": 4, "traits": {"n_distinct_colors": 7, "horn": "common"}},
+        {"id": 5, "traits": {"n_distinct_colors": 5, "horn": "common"}},
+    ]
+    ranked = rank_collection(items)
+    by_id = {r["id"]: r for r in ranked}
+    # 3-color (id=2) must come before any 7-color, regardless of its IC
+    assert by_id[2]["rank"] < by_id[1]["rank"]
+    assert by_id[2]["rank"] < by_id[3]["rank"]
+
+
+def test_tier_ordering_2_above_3_above_7_above_others():
+    items = [
+        {"id": 1, "traits": {"n_distinct_colors": 7}},  # tier 2
+        {"id": 2, "traits": {"n_distinct_colors": 4}},  # fallback tier
+        {"id": 3, "traits": {"n_distinct_colors": 2}},  # tier 0 — top
+        {"id": 4, "traits": {"n_distinct_colors": 3}},  # tier 1
+        {"id": 5, "traits": {"n_distinct_colors": 5}},  # fallback tier
+        {"id": 6, "traits": {"n_distinct_colors": 6}},  # fallback tier
+    ]
+    ranked = rank_collection(items)
+    by_id = {r["id"]: r for r in ranked}
+    assert by_id[3]["rank"] == 1                  # 2-color first
+    assert by_id[4]["rank"] < by_id[1]["rank"]    # 3 before 7
+    assert by_id[1]["rank"] < by_id[2]["rank"]    # 7 before 4
+    assert by_id[1]["rank"] < by_id[5]["rank"]    # 7 before 5
+    assert by_id[1]["rank"] < by_id[6]["rank"]    # 7 before 6
+
+
+def test_within_tier_higher_ic_ranks_higher():
+    # Both 2-color, but one has rare horn → should rank higher within tier 0
+    items = [
+        {"id": 1, "traits": {"n_distinct_colors": 2, "horn": "rare"}},
+        {"id": 2, "traits": {"n_distinct_colors": 2, "horn": "common"}},
+        {"id": 3, "traits": {"n_distinct_colors": 2, "horn": "common"}},
+    ]
+    ranked = rank_collection(items)
+    by_id = {r["id"]: r for r in ranked}
+    assert by_id[1]["rank"] == 1  # rare horn → top
+    assert by_id[2]["rank"] == 2
+    assert by_id[3]["rank"] == 2  # tied with id=2
+
+
+def test_rank_handles_empty_collection():
+    assert rank_collection([]) == []
 
 
 def test_constants_locked():
-    from pipeline.rarity import TRAIT_WEIGHTS, TRAIT_VALUE_BONUS
-    # Color slots: weight 0 (excluded from IC)
-    assert TRAIT_WEIGHTS["bodyColor"] == 0.0
-    assert TRAIT_WEIGHTS["backGroundColor"] == 0.0
-    assert TRAIT_WEIGHTS["hairColor"] == 0.0
-    # n_distinct_colors uses value bonuses, not IC
+    # n_distinct_colors weight 0 (tier-based, not IC-based)
     assert TRAIT_WEIGHTS["n_distinct_colors"] == 0.0
-    assert TRAIT_VALUE_BONUS["n_distinct_colors"][2] == 50.0
-    assert TRAIT_VALUE_BONUS["n_distinct_colors"][3] == 30.0
-    assert TRAIT_VALUE_BONUS["n_distinct_colors"][7] == 15.0
+    assert TRAIT_WEIGHTS["bodyColor"] == 0.0
+    # Tier assignments
+    assert N_DISTINCT_COLORS_TIERS[2] == 0
+    assert N_DISTINCT_COLORS_TIERS[3] == 1
+    assert N_DISTINCT_COLORS_TIERS[7] == 2
+    # 4, 5, 6 not in dict → fallback tier
+    assert 4 not in N_DISTINCT_COLORS_TIERS
+    assert 5 not in N_DISTINCT_COLORS_TIERS
+    assert 6 not in N_DISTINCT_COLORS_TIERS
