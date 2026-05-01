@@ -1,0 +1,9 @@
+name = "upeg-rarity"
+compatibility_date = "2025-01-01"
+
+# Static-only deployment: no Worker script, just serve files from web/dist.
+# `not_found_handling = "single-page-application"` makes /upeg/123, /sets/bichrome,
+# etc. fall back to index.html so React Router handles client-side routing.
+[assets]
+directory = "./web/dist"
+not_found_handling = "single-page-application"
