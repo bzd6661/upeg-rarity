@@ -23,5 +23,8 @@ Thumbs.db
 .env
 .env.local
 
+# Local Claude Code config (per-machine)
+.claude/
+
 # Pipeline scratch
 /tmp_scan/
