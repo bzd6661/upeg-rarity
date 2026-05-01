@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 import os
 import time
-from typing import Callable, Sequence, TypeVar
+from typing import Any, Callable, Sequence, TypeVar
 
 from web3 import Web3
 
@@ -31,7 +31,7 @@ class AllRpcsFailed(RuntimeError):
 class RpcRouter:
     def __init__(
         self,
-        endpoints: Sequence[Callable[..., object]],
+        endpoints: Sequence[Any],
         max_retries: int = 3,
         backoff_seconds: float = 0.5,
     ):
