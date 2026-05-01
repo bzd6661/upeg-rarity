@@ -82,7 +82,7 @@ def main(argv: list[str] | None = None) -> int:
             base = {"id": token_id, "seed": seed, "traits": traits, "svg": svg}
         # "ground" has groundCount=0 (no variants) — excluded from rarity scoring.
         cleaned = {k: v for k, v in base["traits"].items() if k != "ground"}
-        base["traits"] = add_derived_traits(cleaned)
+        base["traits"] = add_derived_traits(cleaned, svg=base.get("svg", ""))
         items.append({**base, "owner": owner})
 
     log.info("Cache hits: %d / %d (%.1f%%)",
