@@ -233,9 +233,14 @@ def main() -> int:
     except Exception as e:
         print(f"Collection stats failed: {e}")
 
-    # Try tokenURI for several IDs (1, 2, 100) — expected to revert (not implemented)
-    for token_id in (1, 2, 100):
-        print(f"\n--- tokenURI({token_id}) ---")
+    # Try tokenURI for several IDs:
+    #   - invalid IDs (1, 2, 100) to confirm revert behavior for non-minted tokens
+    #   - known-valid minted ID (19125) to determine whether revert is unconditional
+    # This resolves the question: does tokenURI revert always, or only for invalid IDs?
+    print("\n=== tokenURI REVERT TEST (invalid IDs first, then known-valid minted ID) ===")
+    for token_id in (1, 2, 100, 19125):
+        label = "INVALID" if token_id < 1000 else "KNOWN-VALID"
+        print(f"\n--- tokenURI({token_id}) [{label}] ---")
         try:
             uri = contract.functions.tokenURI(token_id).call()
         except Exception as e:
@@ -261,6 +266,7 @@ def main() -> int:
             print(">>> SCENARIO B (raw SVG, no JSON wrapper)")
         else:
             print(">>> UNKNOWN URI FORMAT — investigate manually")
+    print("\n>>> tokenURI REVERT VERDICT: see above — if 19125 also reverted, it is UNCONDITIONAL")
 
     # Demonstrate the actual trait extraction path via imageParams contract
     print("\n=== ACTUAL TRAIT EXTRACTION PATH (via imageParams contract) ===")
@@ -269,6 +275,7 @@ def main() -> int:
     print()
 
     # Get a real holder and sample their upegs
+    holder = None
     try:
         holder = contract.functions.Holder(0).call()
         upeg_data = contract.functions.OwnerUpeg(holder, 0).call()
@@ -281,6 +288,9 @@ def main() -> int:
         print(f"\nUpegMetadata for upeg #{token_id}:")
         for i, field in enumerate(fields):
             print(f"  {field} = {meta[i]}")
+        print("\nNOTE: web3.py returns the getSeedData tuple positionally.")
+        print("meta[0] = backGroundColor, meta[1] = body, ..., meta[17] = tailColor.")
+        print("TRAIT_FIELDS must exactly match the Solidity struct field order in UPEG_METADATA_COMPONENTS.")
 
         svg = image_contract.functions.generate(seed).call()
         print(f"\ngenerate(seed) SVG length = {len(svg)} chars")
@@ -289,22 +299,38 @@ def main() -> int:
     except Exception as e:
         print(f"Trait extraction demo failed: {e}")
 
-    # Show trait count space
+    # Verify OwnerUpegsPage page-index convention
+    # Test page=0 and page=1 to confirm 0-indexed paging and observe boundary behavior
+    print("\n=== OwnerUpegsPage PAGE-INDEX CONVENTION TEST ===")
+    if holder is not None:
+        try:
+            upeg_count = contract.functions.OwnerUpegsCount(holder).call()
+            print(f"Holder {holder} owns {upeg_count} upegs")
+            for page_num in (0, 1):
+                try:
+                    page_result = contract.functions.OwnerUpegsPage(holder, page_num, 5).call()
+                    ids = [r[0] for r in page_result]
+                    print(f"OwnerUpegsPage(holder, page={page_num}, pageSize=5) -> {len(page_result)} items, ids={ids}")
+                except Exception as e:
+                    print(f"OwnerUpegsPage page={page_num} failed: {e}")
+            print(">>> PAGE CONVENTION: 0-indexed — page=0 returns first up to pageSize items"
+                  " (verify from output above that page=0 returned the first items)")
+        except Exception as e:
+            print(f"OwnerUpegsPage test failed: {e}")
+    else:
+        print("No holder available — skipping OwnerUpegsPage test")
+
+    # Show trait count space — print all fields with names so findings doc can cite exact values
     print("\n=== TRAIT SPACE (from getImageParams) ===")
+    IMAGE_PARAMS_FIELDS = [
+        "colorsCount", "backgroundColorsCount", "accessoriesCount",
+        "bodyCount", "eyesCount", "hairCount", "hornCount",
+        "legsFrontCount", "legsBackCount", "tailCount", "groundCount", "wingsCount",
+    ]
     try:
         ip = image_contract.functions.getImageParams().call()
-        print(f"colorsCount = {ip[0]}")
-        print(f"backgroundColorsCount = {ip[1]}")
-        print(f"accessoriesCount = {ip[2]}")
-        print(f"bodyCount = {ip[3]}")
-        print(f"eyesCount = {ip[4]}")
-        print(f"hairCount = {ip[5]}")
-        print(f"hornCount = {ip[6]}")
-        print(f"legsFrontCount = {ip[7]}")
-        print(f"legsBackCount = {ip[8]}")
-        print(f"tailCount = {ip[9]}")
-        print(f"groundCount = {ip[10]}")
-        print(f"wingsCount = {ip[11]}")
+        for i, fname in enumerate(IMAGE_PARAMS_FIELDS):
+            print(f"  {fname} = {ip[i]}")
     except Exception as e:
         print(f"getImageParams failed: {e}")
 

@@ -3,6 +3,7 @@
 **Date:** 2026-05-01
 **Contract:** 0x44b28991b167582f18ba0259e0173176ca125505
 **Helper (imageParams/randomSeedProvider):** 0xe54082DfBf044B6a8F584bdDdb90a22d5613C440
+**RPC used:** https://1rpc.io/eth (Nethermind node behind 1rpc aggregator)
 
 ## Scenario classification
 
@@ -21,24 +22,66 @@ complete structured trait record.
 
 ### `tokenURI(tokenId)` behavior
 
-- Available: no (function exists in ABI but always reverts with no data)
-- Returns: REVERTED for all tested IDs (1, 2, 100) — these IDs do not correspond to valid token IDs; actual IDs are large integers (e.g., 19125, 58808+)
-- Decoded JSON keys: N/A
-- Has structured `attributes` array: N/A (tokenURI not used)
-- Sample attribute entries: N/A
+**tokenURI reverts unconditionally — Task 4 must NOT call it.**
 
-**Note:** uPEG is not a conventional ERC-721. It is a hybrid ERC-20/NFT built on Uniswap v4 hooks. Token "IDs" are assigned sequentially from minting events, not 1-indexed. The first observed token ID was 19125 (owned by holder index 0).
+The probe tested both invalid IDs (1, 2, 100) and the known-valid minted ID 19125. All reverted:
+
+```
+tokenURI(1)     [INVALID]     → REVERTED: ('execution reverted', 'no data')
+tokenURI(2)     [INVALID]     → REVERTED: ('execution reverted', 'no data')
+tokenURI(100)   [INVALID]     → REVERTED: ('execution reverted', 'no data')
+tokenURI(19125) [KNOWN-VALID] → REVERTED: ('execution reverted', '0x')
+```
+
+ID 19125 is a confirmed minted token (owned by holder index 0; its seed and full trait
+vector were successfully read via `OwnerUpeg`). The fact that `tokenURI` also reverts for
+it proves the revert is **unconditional** — the function is a stub in the ABI only.
+
+**Implication for Task 4:** Do not call `tokenURI`. The only supported trait-extraction
+path is `OwnerUpegsPage` + `getSeedData` (see Implementation Plan below).
+
+### `OwnerUpegsPage` page-index convention
+
+**Page index is 0-based.** Confirmed by probing holder at index 0 (owns 11 upegs):
+
+```
+OwnerUpegsPage(holder, page=0, pageSize=5) -> 5 items, ids=[19125, 19126, 19127, 19128, 24517]
+OwnerUpegsPage(holder, page=1, pageSize=5) -> 5 items, ids=[31005, 31006, 31007, 31008, 31009]
+```
+
+Page 0 returned the first 5 tokens; page 1 returned the next 5. The pseudocode
+`range(ceil(upeg_count / page_size))` producing pages `[0, 1, 2, ...]` is correct.
 
 ### Probe output (main contract identity)
 
 ```
 name = Unipeg
 symbol = uPEG
-UpegsTotalCount = 58811
-HoldersCount = 1208
+UpegsTotalCount = 58812
+HoldersCount = 1213
 imageParams contract = 0xe54082DfBf044B6a8F584bdDdb90a22d5613C440
 randomSeedProvider = 0xe54082DfBf044B6a8F584bdDdb90a22d5613C440
 ```
+
+### `getImageParams()` — actual on-chain values
+
+```
+colorsCount           = 36
+backgroundColorsCount = 6
+accessoriesCount      = 15
+bodyCount             = 1
+eyesCount             = 1
+hairCount             = 15
+hornCount             = 15
+legsFrontCount        = 15
+legsBackCount         = 15
+tailCount             = 15
+groundCount           = 0
+wingsCount            = 15
+```
+
+The findings doc previously stated "6 background colors" and "palette of 36 colors" —
+both are confirmed by the live probe above.
 
 ### Sample trait extraction for upeg #19125 (seed=2441525982659010410504976999095291821883392)
 
@@ -67,12 +110,12 @@ tailColor = 28
 
 **Main contract (0x44b28991...):**
 
-- `UpegsTotalCount() → uint256` — total number of upegs minted (58,811 at probe time)
-- `HoldersCount() → uint256` — number of unique holders (1,208 at probe time)
+- `UpegsTotalCount() → uint256` — total number of upegs minted (58,812 at probe time)
+- `HoldersCount() → uint256` — number of unique holders (1,213 at probe time)
 - `Holder(index uint256) → address` — enumerate holders by index
 - `OwnerUpegsCount(owner address) → uint256` — how many upegs an address holds
 - `OwnerUpeg(owner address, index uint256) → UpegSeedData{id, seed}` — get one upeg by owner+index
-- `OwnerUpegsPage(owner address, page uint256, pageSize uint256) → UpegSeedData[]` — paginated enumeration of a holder's upegs
+- `OwnerUpegsPage(owner address, page uint256, pageSize uint256) → UpegSeedData[]` — paginated enumeration of a holder's upegs (0-indexed pages)
 - `OwnerOwns(owner address, upegId uint256) → bool` — ownership check
 - `imageParams() → address` — returns the imageParams helper contract address
 - `randomSeedProvider() → address` — returns the random seed provider address (same as imageParams: 0xe54082...)
@@ -107,28 +150,31 @@ tailColor = 28
 
 ## Trait dimensions identified
 
-All trait values are uint8 indices. The `*Color` fields index into a palette of 36 colors; the shape/part fields index into variant arrays. Index 0 typically means "none" or "default variant 1".
+All trait values are uint8 indices. The `*Color` fields index into a palette of **36 colors**
+(`colorsCount = 36` from `getImageParams()`). Background colors have a separate palette of
+**6 entries** (`backgroundColorsCount = 6`). The shape/part fields index into variant arrays.
+Index 0 typically means "none" or "default variant 1".
 
 | Trait field | Type | Count | Notes |
 |---|---|---|---|
-| `backGroundColor` | color index | 6 background colors | Indexes into backgroundColors palette |
-| `body` | shape index | 1 variant | Only one body shape currently |
-| `eyes` | shape index | 1 variant | Only one eyes shape currently |
-| `hair` | shape index | 15 variants | 0 = no hair |
-| `horn` | shape index | 15 variants | 0 = no horn |
-| `legsBack` | shape index | 15 variants | Back leg style |
-| `legsFront` | shape index | 15 variants | Front leg style |
-| `wings` | shape index | 15 variants | 0 = no wings |
-| `tail` | shape index | 15 variants | Tail style |
-| `accessories` | shape index | 15 variants | 0 = no accessories |
-| `ground` | shape index | 0 variants | Not currently used |
-| `bodyColor` | color index | 36 colors | Indexes into full color palette |
-| `eyesColor` | color index | 36 colors | Indexes into full color palette |
-| `hairColor` | color index | 36 colors | 0 when hair=0 |
-| `hornColor` | color index | 36 colors | 0 when horn=0 |
-| `groundColor` | color index | 36 colors | Unused (groundCount=0) |
-| `accessoriesColor` | color index | 36 colors | 0 when accessories=0 |
-| `tailColor` | color index | 36 colors | Tail color |
+| `backGroundColor` | color index | **6** background colors | `backgroundColorsCount = 6` |
+| `body` | shape index | **1** variant | Only one body shape currently (`bodyCount = 1`) |
+| `eyes` | shape index | **1** variant | Only one eyes shape currently (`eyesCount = 1`) |
+| `hair` | shape index | **15** variants | `hairCount = 15`; value 0 = no hair |
+| `horn` | shape index | **15** variants | `hornCount = 15`; value 0 = no horn |
+| `legsBack` | shape index | **15** variants | `legsBackCount = 15` |
+| `legsFront` | shape index | **15** variants | `legsFrontCount = 15` |
+| `wings` | shape index | **15** variants | `wingsCount = 15`; value 0 = no wings |
+| `tail` | shape index | **15** variants | `tailCount = 15` |
+| `accessories` | shape index | **15** variants | `accessoriesCount = 15`; value 0 = no accessories |
+| `ground` | shape index | **0** variants | `groundCount = 0` — not currently used, skip in scoring |
+| `bodyColor` | color index | **36** colors | Indexes into full color palette (`colorsCount = 36`) |
+| `eyesColor` | color index | **36** colors | Indexes into full color palette |
+| `hairColor` | color index | **36** colors | 0 when hair=0 |
+| `hornColor` | color index | **36** colors | 0 when horn=0 |
+| `groundColor` | color index | **36** colors | Unused (groundCount=0) |
+| `accessoriesColor` | color index | **36** colors | 0 when accessories=0 |
+| `tailColor` | color index | **36** colors | Tail color |
 
 **Observed sample values across 3 tokens:**
 - Upeg #19125: backGroundColor=0, horn=0, wings=0, hair=0, legsBack=7, legsFront=12, tail=10, accessories=15, bodyColor=30
@@ -150,6 +196,7 @@ for i in range(holders_count):
     holder = main.functions.Holder(i).call()
     upeg_count = main.functions.OwnerUpegsCount(holder).call()
     # paginate with OwnerUpegsPage(holder, page, page_size)
+    # Pages are 0-indexed: page=0 returns the first pageSize items.
     for page in range(ceil(upeg_count / page_size)):
         seeds = main.functions.OwnerUpegsPage(holder, page, page_size).call()
         for (upeg_id, seed) in seeds:
@@ -157,7 +204,12 @@ for i in range(holders_count):
             # store {upeg_id: traits_dict}
 ```
 
-**Alternative (faster):** scan Transfer events from block 0 to current to collect all (id, seed) pairs without iterating holders.
+**Note on page indexing:** Confirmed by probe — `page=0` is the first page. Do not
+start at page 1.
+
+**Do NOT use Transfer events as an alternative.** Standard ERC-721 Transfer events do not
+carry the `seed`. The only supported path to get `(id, seed)` pairs is `OwnerUpegsPage`.
+(Custom events containing seeds were not observed in Etherscan; verify before using events.)
 
 ### Trait extraction (per token)
 
@@ -171,6 +223,10 @@ TRAIT_FIELDS = [
 
 def extract_traits(seed: int, image_contract) -> dict:
     meta = image_contract.functions.getSeedData(seed).call()
+    # web3.py returns the UpegMetadata tuple positionally:
+    #   meta[0] = backGroundColor, meta[1] = body, ..., meta[17] = tailColor
+    # TRAIT_FIELDS order MUST exactly match the Solidity struct field order
+    # in UPEG_METADATA_COMPONENTS (verified: the list above matches the ABI).
     return dict(zip(TRAIT_FIELDS, meta))
 ```
 
@@ -178,12 +234,13 @@ def extract_traits(seed: int, image_contract) -> dict:
 
 Each trait field is treated as an independent dimension. Rarity score per token =
 sum of `-log(frequency[field][value] / total_supply)` across all trait fields.
-Fields with `*Count = 0` (currently `ground`) are excluded.
+Fields with `*Count = 0` (currently `ground`, `groundCount = 0`) are excluded.
 Color fields and shape fields are scored independently.
 
 ### SVG serving
 
-`image_contract.functions.generate(seed).call()` returns a complete inline SVG string.
+`image_contract.functions.generate(seed).call()` returns a complete inline SVG string
+(confirmed: 2780 chars for upeg #19125, valid `<svg>` element).
 This can be served directly from a cache keyed by `(upeg_id, seed)`.
 
 ## Decision gate
