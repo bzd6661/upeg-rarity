@@ -18,9 +18,11 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 DEFAULT_RPC_URLS = (
+    "https://ethereum-rpc.publicnode.com",
+    "https://eth.drpc.org",
+    "https://eth.merkle.io",
+    "https://1rpc.io/eth",
     "https://eth.llamarpc.com",
-    "https://rpc.ankr.com/eth",
-    "https://cloudflare-eth.com",
 )
 
 
