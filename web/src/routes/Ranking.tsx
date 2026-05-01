@@ -51,20 +51,30 @@ export function Ranking({ bundle }: Props) {
                   #{item.id}
                 </Link>
                 <span className="text-sm text-zinc-400">score {item.score.toFixed(2)}</span>
-                <div className="ml-auto flex flex-wrap gap-1 text-xs">
-                  {Object.entries(item.traits)
-                    .filter(([k]) => !k.startsWith("has_") && !k.startsWith("n_"))
-                    .slice(0, 6)
-                    .map(([k, v]) => (
-                      <span key={k} className="rounded bg-zinc-800 px-2 py-0.5">
-                        {k}: {String(v)}
-                      </span>
-                    ))}
+                <div className="ml-auto flex flex-wrap items-center gap-1.5 text-xs">
+                  {item.traits.n_distinct_colors !== undefined && (
+                    <span className="rounded-full border border-emerald-700 bg-emerald-950/40 px-2 py-0.5 text-emerald-300">
+                      {item.traits.n_distinct_colors} colors
+                    </span>
+                  )}
                   {item.traits.n_distinct_colors === 2 && (
-                    <span className="rounded-full border border-emerald-600 bg-emerald-950/60 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-300">
+                    <span className="rounded-full border border-emerald-500 bg-emerald-900/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-300">
                       Bichrome
                     </span>
                   )}
+                  {[
+                    ["hair", "has_hair"],
+                    ["horn", "has_horn"],
+                    ["wings", "has_wings"],
+                    ["legsBack", "has_legsBack"],
+                    ["accessories", "has_accessories"],
+                  ]
+                    .filter(([, key]) => item.traits[key] === 1)
+                    .map(([label]) => (
+                      <span key={label} className="rounded bg-zinc-800 px-2 py-0.5 text-zinc-300">
+                        {label}
+                      </span>
+                    ))}
                 </div>
               </div>
             );
