@@ -49,7 +49,9 @@ export function Holder({ bundle }: Props) {
           </p>
           {holder && holder.unbound >= 1 && (
             <p className="mt-1 text-xs text-amber-500/80">
-              Unbound &gt; 1 means this address used <code>transferUpeg</code> to send specific NFTs away while keeping the token balance.
+              Unbound &gt; 1 means this address holds more uPEG token than the count of bound NFTs.
+              Token balance and NFT count can drift apart on the v4 hook path
+              (token mints fire without always minting an NFT). Authoritative count comes from on-chain <code>OwnerUpegsCount</code>.
             </p>
           )}
         </div>

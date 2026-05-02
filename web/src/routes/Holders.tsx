@@ -53,7 +53,7 @@ export function Holders({ bundle }: Props) {
           {(bundle.holders.total_unbound ?? bundle.holders.total_fractional ?? 0).toFixed(2)} uPEG of unbound balance (not bound to any NFT)
         </p>
         <p className="mt-1 text-xs text-zinc-500">
-          &ldquo;Unbound&rdquo; = balance not represented by an NFT. Includes sub-1 fractional dust AND &ldquo;ghost&rdquo; whole tokens for holders who used <code className="text-zinc-400">transferUpeg</code> to send specific NFTs away while keeping the balance.
+          &ldquo;Unbound&rdquo; = uPEG token balance that isn&rsquo;t bound to an NFT. Sub-1 dust is normal. Values &ge; 1 mean the v4 hook minted token without minting an NFT for that share — the token still counts toward your balance, just no NFT was crystallized.
         </p>
       </header>
 
