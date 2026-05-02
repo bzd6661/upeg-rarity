@@ -38,15 +38,20 @@ export function Holder({ bundle }: Props) {
           </h2>
           <p className="mt-1 text-sm text-zinc-400">
             {items.length} uPEG{items.length === 1 ? "" : "s"}
-            {holder && holder.fractional > 0 && (
-              <span className="ml-3 text-emerald-400">
-                + {holder.fractional.toFixed(4)} fractional
+            {holder && holder.unbound > 0 && (
+              <span className={`ml-3 ${holder.unbound >= 1 ? "text-amber-400" : "text-emerald-400"}`}>
+                + {holder.unbound.toFixed(4)} unbound
               </span>
             )}
             {holder && (
-              <span className="ml-3 text-zinc-500">total: {holder.balance}</span>
+              <span className="ml-3 text-zinc-500">total: {holder.balance} uPEG</span>
             )}
           </p>
+          {holder && holder.unbound >= 1 && (
+            <p className="mt-1 text-xs text-amber-500/80">
+              Unbound &gt; 1 means this address used <code>transferUpeg</code> to send specific NFTs away while keeping the token balance.
+            </p>
+          )}
         </div>
 
         {items.length === 0 ? (

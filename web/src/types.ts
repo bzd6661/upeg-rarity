@@ -31,9 +31,10 @@ export interface MetaFile {
 
 export interface HolderEntry {
   address: string;
-  nft_count: number;
-  fractional: number;
-  balance: string;  // human-readable like "5.7320"
+  nft_count: number;       // authoritative count from on-chain enumeration
+  unbound: number;         // balance - nft_count (sub-NFT + any "ghost" balance from transferUpeg)
+  fractional: number;      // strict sub-1 fractional piece of unbound (legacy field)
+  balance: string;         // human-readable total like "5.7320"
 }
 
 export interface HoldersFile {
@@ -41,7 +42,8 @@ export interface HoldersFile {
   block: number;
   total_holders: number;
   total_nfts: number;
-  total_fractional: number;
+  total_unbound: number;     // total balance not bound to any NFT, network-wide
+  total_fractional?: number; // legacy alias, equal to total_unbound
   items: HolderEntry[];
 }
 

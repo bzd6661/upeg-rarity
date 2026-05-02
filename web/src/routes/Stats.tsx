@@ -49,7 +49,7 @@ export function Stats({ bundle }: Props) {
                   label="Avg per holder"
                   value={(bundle.holders.total_nfts / bundle.holders.total_holders).toFixed(2)}
                 />
-                <StatCard label="Scattered uPEG" value={bundle.holders.total_fractional.toFixed(2)} />
+                <StatCard label="Unbound uPEG" value={(bundle.holders.total_unbound ?? bundle.holders.total_fractional ?? 0).toFixed(2)} />
               </div>
             </CardContent>
           </Card>

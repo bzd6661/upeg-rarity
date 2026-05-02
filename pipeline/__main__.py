@@ -22,8 +22,8 @@ from pathlib import Path
 
 from pipeline.derived import add_derived_traits
 from pipeline.emit import emit_all
-from pipeline.enumerate import enumerate_all
-from pipeline.holders import balance_of, split_balance
+from pipeline.enumerate import enumerate_all, enumerate_holders
+from pipeline.holders import balance_of, compute_holder_entry
 from pipeline.rarity import rank_collection
 from pipeline.rpc import RpcRouter
 from pipeline.traits import extract_svg, extract_traits
@@ -112,13 +112,26 @@ def main(argv: list[str] | None = None) -> int:
 
     ranked = rank_collection(items)
 
-    # Query balanceOf for every holder (fractional balance not in enumeration)
-    holders_set = sorted({owner for _, _, owner in triples})
+    # Authoritative NFT count per holder = number of (id, seed) triples we got
+    # from enumeration. This is what OwnerUpegsCount returns on chain. We do
+    # NOT use floor(balance) because users can transferUpeg specific NFTs out
+    # without changing their token balance, so floor(balance) overcounts NFTs.
+    nft_count_by_holder: dict[str, int] = {}
+    for _, _, owner in triples:
+        nft_count_by_holder[owner] = nft_count_by_holder.get(owner, 0) + 1
+
+    # Query balanceOf for every holder so we can compute the unbound (non-NFT)
+    # portion of their balance. Includes holders who only have fractional dust
+    # (no NFTs at all) since enumerate_holders() returns everyone with a
+    # non-zero balance, but those won't appear in `triples`.
+    all_holders = router.call(enumerate_holders)
+    holders_set = sorted(set(all_holders) | set(nft_count_by_holder))
     log.info("Querying balanceOf for %d holders", len(holders_set))
     holder_balances: list[dict] = []
     for addr in holders_set:
         raw = router.call(lambda w3, a=addr: balance_of(w3, a))
-        holder_balances.append({"address": addr, **split_balance(raw)})
+        nft_count = nft_count_by_holder.get(addr, 0)
+        holder_balances.append({"address": addr, **compute_holder_entry(raw, nft_count)})
 
     if args.dry_run:
         log.info("Dry run: would emit %d items at block %d", len(ranked), latest_block)

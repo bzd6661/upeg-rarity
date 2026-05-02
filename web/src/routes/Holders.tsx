@@ -10,7 +10,7 @@ interface Props {
   bundle: DataBundle;
 }
 
-type SortKey = "nft_count" | "fractional" | "address";
+type SortKey = "nft_count" | "unbound" | "address";
 
 export function Holders({ bundle }: Props) {
   const [query, setQuery] = useState("");
@@ -25,8 +25,8 @@ export function Holders({ bundle }: Props) {
       list = list.filter((h) => h.address.toLowerCase().includes(q));
     }
     const sorted = [...list];
-    if (sortKey === "nft_count") sorted.sort((a, b) => b.nft_count - a.nft_count || b.fractional - a.fractional);
-    if (sortKey === "fractional") sorted.sort((a, b) => b.fractional - a.fractional);
+    if (sortKey === "nft_count") sorted.sort((a, b) => b.nft_count - a.nft_count || b.unbound - a.unbound);
+    if (sortKey === "unbound") sorted.sort((a, b) => b.unbound - a.unbound);
     if (sortKey === "address") sorted.sort((a, b) => a.address.localeCompare(b.address));
     return sorted;
   }, [holders, query, sortKey]);
@@ -50,7 +50,10 @@ export function Holders({ bundle }: Props) {
         <p className="mt-1 text-sm text-zinc-400">
           {bundle.holders.total_holders.toLocaleString()} holders &middot;{" "}
           {bundle.holders.total_nfts.toLocaleString()} NFTs &middot;{" "}
-          {bundle.holders.total_fractional.toFixed(2)} uPEG of &ldquo;scattered&rdquo; fractional balance in circulation
+          {(bundle.holders.total_unbound ?? bundle.holders.total_fractional ?? 0).toFixed(2)} uPEG of unbound balance (not bound to any NFT)
+        </p>
+        <p className="mt-1 text-xs text-zinc-500">
+          &ldquo;Unbound&rdquo; = balance not represented by an NFT. Includes sub-1 fractional dust AND &ldquo;ghost&rdquo; whole tokens for holders who used <code className="text-zinc-400">transferUpeg</code> to send specific NFTs away while keeping the balance.
         </p>
       </header>
 
@@ -67,7 +70,7 @@ export function Holders({ bundle }: Props) {
           className="rounded-md border border-zinc-700 bg-zinc-900 px-3 text-sm"
         >
           <option value="nft_count">Sort: NFT count</option>
-          <option value="fractional">Sort: Fractional balance</option>
+          <option value="unbound">Sort: Unbound balance</option>
           <option value="address">Sort: Address</option>
         </select>
       </div>
@@ -78,7 +81,7 @@ export function Holders({ bundle }: Props) {
             <tr className="border-b border-border">
               <th className="p-3 text-left">Address</th>
               <th className="p-3 text-right">NFTs</th>
-              <th className="p-3 text-right">Fractional</th>
+              <th className="p-3 text-right">Unbound</th>
               <th className="p-3 text-right">Total Balance</th>
             </tr>
           </thead>
@@ -99,8 +102,14 @@ export function Holders({ bundle }: Props) {
                     <span className="text-zinc-600">0</span>
                   )}
                 </td>
-                <td className="p-3 text-right font-mono text-zinc-400">
-                  {h.fractional > 0 ? h.fractional.toFixed(4) : "—"}
+                <td className="p-3 text-right font-mono">
+                  {h.unbound > 0 ? (
+                    <span className={h.unbound >= 1 ? "text-amber-400" : "text-zinc-400"}>
+                      {h.unbound.toFixed(4)}
+                    </span>
+                  ) : (
+                    <span className="text-zinc-600">—</span>
+                  )}
                 </td>
                 <td className="p-3 text-right font-mono text-zinc-300">{h.balance}</td>
               </tr>
