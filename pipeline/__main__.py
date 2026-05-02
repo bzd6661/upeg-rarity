@@ -37,16 +37,37 @@ DATA_DIR = Path("data")
 
 
 def _load_cache() -> dict[tuple[int, int], dict]:
-    """Index previous run's items by (id, seed) for cache reuse."""
+    """Index previous run's items by (id, seed) for cache reuse.
+
+    SVGs live in svgs.json (separate file since the upegs.json + SVGs combined
+    used to exceed the 25 MB Cloudflare Workers asset limit). We merge them
+    back into each cached item under the `svg` key so downstream cache-hit
+    consumers can read it as before.
+    """
     upegs_path = DATA_DIR / "upegs.json"
+    svgs_path = DATA_DIR / "svgs.json"
     if not upegs_path.exists():
         return {}
+
+    svgs: dict[str, str] = {}
+    if svgs_path.exists():
+        try:
+            svgs = json.loads(svgs_path.read_text())
+        except Exception:
+            svgs = {}
+
     cache: dict[tuple[int, int], dict] = {}
     for item in json.loads(upegs_path.read_text()).get("items", []):
         # Older items may lack `seed` if schema evolves — skip those, recompute.
         if "seed" not in item:
             continue
-        cache[(int(item["id"]), int(item["seed"]))] = item
+        token_id = int(item["id"])
+        # Merge SVG back if present in the separate svgs file.
+        merged = {**item, "svg": item.get("svg", svgs.get(str(token_id), ""))}
+        # Skip if we still have no svg — forces a fresh fetch for this token.
+        if not merged["svg"]:
+            continue
+        cache[(token_id, int(item["seed"]))] = merged
     return cache
 
 
