@@ -15,7 +15,7 @@ class _FnReturn:
 
 
 class _FakeMain:
-    """Main UPEG contract mock — implements enumeration."""
+    """Main UPEG contract mock — implements enumeration + balanceOf."""
     def __init__(self, holdings: dict[str, list[tuple[int, int]]]):
         self._holdings = holdings
         self._holders = list(holdings.keys())
@@ -37,6 +37,14 @@ class _FakeMain:
         items = self._holdings[owner]
         start = page * page_size
         return _FnReturn(items[start:start + page_size])
+
+    def balanceOf(self, owner):
+        # Return integer NFT count * 10^18 with no fractional for simplicity
+        nft_count = len(self._holdings.get(owner, []))
+        return _FnReturn(nft_count * 10**18)
+
+    def decimals(self):
+        return _FnReturn(18)
 
 
 class _FakeHook:
@@ -121,3 +129,10 @@ def test_pipeline_end_to_end(tmp_path: Path, monkeypatch):
         assert "n_distinct_colors" in item["traits"], (
             f"item {item['id']} missing n_distinct_colors"
         )
+    # Holders JSON must be written
+    holders = json.loads((tmp_path / "data" / "holders.json").read_text())
+    assert holders["total_holders"] == 2
+    assert holders["total_nfts"] == 3
+    holder_addrs = {h["address"] for h in holders["items"]}
+    assert "0xaaaa" in holder_addrs
+    assert "0xbbbb" in holder_addrs

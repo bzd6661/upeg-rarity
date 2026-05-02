@@ -52,6 +52,20 @@ TRAIT_FIELDS: tuple[str, ...] = (
 
 MAIN_ABI = [
     {
+        "name": "balanceOf",
+        "type": "function",
+        "stateMutability": "view",
+        "inputs": [{"name": "owner", "type": "address"}],
+        "outputs": [{"name": "", "type": "uint256"}],
+    },
+    {
+        "name": "decimals",
+        "type": "function",
+        "stateMutability": "view",
+        "inputs": [],
+        "outputs": [{"name": "", "type": "uint8"}],
+    },
+    {
         "name": "HoldersCount",
         "type": "function",
         "stateMutability": "view",

@@ -16,6 +16,7 @@ function truncateAddress(addr: string): string {
 export function Holder({ bundle }: Props) {
   const { addr } = useParams<{ addr: string }>();
   const norm = (addr ?? "").toLowerCase();
+  const holder = bundle.holderByAddress?.get(norm);
   const items = bundle.byOwner.get(norm) ?? [];
 
   return (
@@ -37,6 +38,14 @@ export function Holder({ bundle }: Props) {
           </h2>
           <p className="mt-1 text-sm text-zinc-400">
             {items.length} uPEG{items.length === 1 ? "" : "s"}
+            {holder && holder.fractional > 0 && (
+              <span className="ml-3 text-emerald-400">
+                + {holder.fractional.toFixed(4)} fractional
+              </span>
+            )}
+            {holder && (
+              <span className="ml-3 text-zinc-500">total: {holder.balance}</span>
+            )}
           </p>
         </div>
 

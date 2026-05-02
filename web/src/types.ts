@@ -29,10 +29,28 @@ export interface MetaFile {
   data_hash: string;
 }
 
+export interface HolderEntry {
+  address: string;
+  nft_count: number;
+  fractional: number;
+  balance: string;  // human-readable like "5.7320"
+}
+
+export interface HoldersFile {
+  generated_at: string;
+  block: number;
+  total_holders: number;
+  total_nfts: number;
+  total_fractional: number;
+  items: HolderEntry[];
+}
+
 export interface DataBundle {
   upegs: UpegsFile;
   stats: StatsFile;
   meta: MetaFile;
+  holders?: HoldersFile;           // optional — pipeline may not have run with holders yet
   byId: Map<number, Upeg>;
   byOwner: Map<string, Upeg[]>;
+  holderByAddress?: Map<string, HolderEntry>;  // computed at index time, addr lowercase
 }

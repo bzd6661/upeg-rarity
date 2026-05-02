@@ -23,6 +23,7 @@ from pathlib import Path
 from pipeline.derived import add_derived_traits
 from pipeline.emit import emit_all
 from pipeline.enumerate import enumerate_all
+from pipeline.holders import balance_of, split_balance
 from pipeline.rarity import rank_collection
 from pipeline.rpc import RpcRouter
 from pipeline.traits import extract_svg, extract_traits
@@ -111,11 +112,19 @@ def main(argv: list[str] | None = None) -> int:
 
     ranked = rank_collection(items)
 
+    # Query balanceOf for every holder (fractional balance not in enumeration)
+    holders_set = sorted({owner for _, _, owner in triples})
+    log.info("Querying balanceOf for %d holders", len(holders_set))
+    holder_balances: list[dict] = []
+    for addr in holders_set:
+        raw = router.call(lambda w3, a=addr: balance_of(w3, a))
+        holder_balances.append({"address": addr, **split_balance(raw)})
+
     if args.dry_run:
         log.info("Dry run: would emit %d items at block %d", len(ranked), latest_block)
         return 0
 
-    emit_all(DATA_DIR, ranked, block=latest_block)
+    emit_all(DATA_DIR, ranked, block=latest_block, holders=holder_balances)
     log.info("Wrote %d items to %s", len(ranked), DATA_DIR)
     return 0
 

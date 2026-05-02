@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-def emit_all(out_dir: Path, items: list[dict], block: int) -> None:
+def emit_all(out_dir: Path, items: list[dict], block: int, holders: list[dict] | None = None) -> None:
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -48,6 +48,27 @@ def emit_all(out_dir: Path, items: list[dict], block: int) -> None:
         "data_hash": data_hash,
     }
     (out_dir / "meta.json").write_text(json.dumps(meta_payload, indent=2))
+
+    if holders is not None:
+        # Sort holders descending by nft_count, then descending by fractional
+        sorted_holders = sorted(
+            holders,
+            key=lambda h: (-h["nft_count"], -h["fractional"]),
+        )
+        # Aggregates for the Stats page
+        total_fractional = sum(h["fractional"] for h in holders)
+        total_nfts = sum(h["nft_count"] for h in holders)
+        holders_payload = {
+            "generated_at": now,
+            "block": block,
+            "total_holders": len(holders),
+            "total_nfts": total_nfts,
+            "total_fractional": round(total_fractional, 4),
+            "items": sorted_holders,
+        }
+        (out_dir / "holders.json").write_text(
+            json.dumps(holders_payload, indent=2)
+        )
 
 
 def _build_stats(items: list[dict]) -> dict:

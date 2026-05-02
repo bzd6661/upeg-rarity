@@ -39,6 +39,22 @@ export function Stats({ bundle }: Props) {
           </p>
         </header>
 
+        {bundle.holders && (
+          <Card>
+            <CardContent className="p-4">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <StatCard label="Holders" value={bundle.holders.total_holders.toLocaleString()} />
+                <StatCard label="NFTs minted" value={bundle.holders.total_nfts.toLocaleString()} />
+                <StatCard
+                  label="Avg per holder"
+                  value={(bundle.holders.total_nfts / bundle.holders.total_holders).toFixed(2)}
+                />
+                <StatCard label="Scattered uPEG" value={bundle.holders.total_fractional.toFixed(2)} />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           <StatCard label="Total minted" value={total.toLocaleString()} />
           {bichrome > 0 && (

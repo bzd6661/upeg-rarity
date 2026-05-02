@@ -5,6 +5,7 @@ import { loadBundle } from "./lib/data";
 import { Ranking } from "./routes/Ranking";
 import { Detail } from "./routes/Detail";
 import { Holder } from "./routes/Holder";
+import { Holders } from "./routes/Holders";
 import { Stats } from "./routes/Stats";
 import { Sets } from "./routes/Sets";
 import { SetDetail } from "./routes/SetDetail";
@@ -62,6 +63,9 @@ export default function App() {
           <NavLink to="/sets" className={navClass}>
             Sets
           </NavLink>
+          <NavLink to="/holders" className={navClass}>
+            Holders
+          </NavLink>
           <NavLink to="/stats" className={navClass}>
             Stats
           </NavLink>
@@ -94,6 +98,7 @@ export default function App() {
             <Route path="/" element={<Ranking bundle={bundle} />} />
             <Route path="/upeg/:id" element={<Detail bundle={bundle} />} />
             <Route path="/holder/:addr" element={<Holder bundle={bundle} />} />
+            <Route path="/holders" element={<Holders bundle={bundle} />} />
             <Route path="/stats" element={<Stats bundle={bundle} />} />
             <Route path="/sets" element={<Sets bundle={bundle} />} />
             <Route path="/sets/:name" element={<SetDetail bundle={bundle} />} />

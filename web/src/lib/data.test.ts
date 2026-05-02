@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { loadBundle, indexUpegs, _resetCacheForTests } from "./data";
-import type { Upeg, UpegsFile, StatsFile, MetaFile, SvgsFile } from "../types";
+import type { Upeg, UpegsFile, StatsFile, MetaFile, SvgsFile, HoldersFile } from "../types";
 
 const mockUpegsRaw: UpegsFile = {
   generated_at: "2026-05-01T00:00:00Z",
@@ -14,10 +14,26 @@ const mockUpegsRaw: UpegsFile = {
 const mockStats: StatsFile = { total_minted: 2, trait_frequencies: { color: { r: 1, b: 1 } } };
 const mockMeta: MetaFile = { generated_at: "2026-05-01T00:00:00Z", block: 100, total_minted: 2, data_hash: "h1" };
 const mockSvgs: SvgsFile = { "1": "<svg id='1'/>", "2": "<svg id='2'/>" };
+const mockHolders: HoldersFile = {
+  generated_at: "2026-05-01T00:00:00Z",
+  block: 100,
+  total_holders: 2,
+  total_nfts: 2,
+  total_fractional: 0.5,
+  items: [
+    { address: "0xa", nft_count: 1, fractional: 0.5, balance: "1.5000" },
+    { address: "0xb", nft_count: 1, fractional: 0.0, balance: "1.0000" },
+  ],
+};
 
 function fakeFetch(map: Record<string, unknown>): typeof fetch {
-  return (url) =>
-    Promise.resolve(new Response(JSON.stringify(map[url as string]), { status: 200 })) as ReturnType<typeof fetch>;
+  return (url) => {
+    const key = url as string;
+    if (key in map) {
+      return Promise.resolve(new Response(JSON.stringify(map[key]), { status: 200 })) as ReturnType<typeof fetch>;
+    }
+    return Promise.resolve(new Response("Not Found", { status: 404 })) as ReturnType<typeof fetch>;
+  };
 }
 
 describe("indexUpegs", () => {
@@ -45,11 +61,40 @@ describe("loadBundle", () => {
       "/upegs.json": mockUpegsRaw,
       "/stats.json": mockStats,
       "/svgs.json": mockSvgs,
+      "/holders.json": mockHolders,
     }));
     const bundle = await loadBundle();
     expect(bundle.upegs.total_minted).toBe(2);
     expect(bundle.byId.get(1)?.svg).toBe("<svg id='1'/>");
     expect(bundle.byId.get(2)?.svg).toBe("<svg id='2'/>");
+  });
+
+  it("populates holderByAddress map from holders.json", async () => {
+    vi.stubGlobal("fetch", fakeFetch({
+      "/meta.json": mockMeta,
+      "/upegs.json": mockUpegsRaw,
+      "/stats.json": mockStats,
+      "/svgs.json": mockSvgs,
+      "/holders.json": mockHolders,
+    }));
+    const bundle = await loadBundle();
+    expect(bundle.holders?.total_holders).toBe(2);
+    expect(bundle.holderByAddress?.get("0xa")?.nft_count).toBe(1);
+    expect(bundle.holderByAddress?.get("0xa")?.fractional).toBe(0.5);
+    expect(bundle.holderByAddress?.get("0xb")?.balance).toBe("1.0000");
+  });
+
+  it("tolerates missing holders.json", async () => {
+    vi.stubGlobal("fetch", fakeFetch({
+      "/meta.json": mockMeta,
+      "/upegs.json": mockUpegsRaw,
+      "/stats.json": mockStats,
+      "/svgs.json": mockSvgs,
+      // /holders.json intentionally absent → fetch returns 404 → caught
+    }));
+    const bundle = await loadBundle();
+    expect(bundle.holders).toBeUndefined();
+    expect(bundle.holderByAddress?.size).toBe(0);
   });
 
   it("uses localStorage cache when meta hash matches", async () => {
@@ -58,6 +103,7 @@ describe("loadBundle", () => {
       "/upegs.json": mockUpegsRaw,
       "/stats.json": mockStats,
       "/svgs.json": mockSvgs,
+      "/holders.json": mockHolders,
     }));
     vi.stubGlobal("fetch", fetchMock);
     await loadBundle();
@@ -76,6 +122,7 @@ describe("loadBundle", () => {
       "/upegs.json": mockUpegsRaw,
       "/stats.json": mockStats,
       "/svgs.json": mockSvgs,
+      "/holders.json": mockHolders,
     }));
     await loadBundle();
     _resetCacheForTests();
@@ -85,6 +132,7 @@ describe("loadBundle", () => {
       "/upegs.json": mockUpegsRaw,
       "/stats.json": mockStats,
       "/svgs.json": mockSvgs,
+      "/holders.json": mockHolders,
     }));
     vi.stubGlobal("fetch", fetchMock);
     await loadBundle();
