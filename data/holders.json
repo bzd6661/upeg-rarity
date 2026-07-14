@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-07-14T02:59:53+00:00",
-  "block": 25528012,
-  "total_holders": 1392,
-  "total_nfts": 6365,
-  "total_fractional": 272.8354,
+  "generated_at": "2026-07-14T05:57:37+00:00",
+  "block": 25528887,
+  "total_holders": 1393,
+  "total_nfts": 6368,
+  "total_fractional": 272.5581,
   "items": [
     {
       "address": "0x9642b23Ed1E01Df1092B92641051881a322F5D4E",
@@ -986,6 +986,13 @@
       "balance": "10.3580"
     },
     {
+      "address": "0x7b6a9f41c68b5Fb037699376F283B02Cd0012D16",
+      "nft_count": 10,
+      "unbound": 0.332,
+      "fractional": 0.332,
+      "balance": "10.3320"
+    },
+    {
       "address": "0xe7A5dCBeD553248cFA916A85808b647Db8c3B6CB",
       "nft_count": 10,
       "unbound": 5.1943,
@@ -1187,13 +1194,6 @@
       "unbound": 0.4021,
       "fractional": 0.4021,
       "balance": "8.4021"
-    },
-    {
-      "address": "0x7b6a9f41c68b5Fb037699376F283B02Cd0012D16",
-      "nft_count": 8,
-      "unbound": 0.332,
-      "fractional": 0.332,
-      "balance": "8.3320"
     },
     {
       "address": "0x553F67bB2533E68841e3EF6d0ed1734E8158098a",
@@ -4906,13 +4906,6 @@
       "balance": "1.3310"
     },
     {
-      "address": "0x694c2bFC07e40762895D40dCc36E6529d78bF3d3",
-      "nft_count": 1,
-      "unbound": 1.3208,
-      "fractional": 0.3208,
-      "balance": "2.3208"
-    },
-    {
       "address": "0x692829a235A0aaCE1AE971b79329F46d941b8d11",
       "nft_count": 1,
       "unbound": 1.3114,
@@ -5681,6 +5674,13 @@
       "unbound": 0.0437,
       "fractional": 0.0437,
       "balance": "1.0437"
+    },
+    {
+      "address": "0x0837a3e89a0520F4b292F74df4Fef5d5Ac766229",
+      "nft_count": 1,
+      "unbound": 1.0435,
+      "fractional": 0.0435,
+      "balance": "2.0435"
     },
     {
       "address": "0x28984D406d05Ff78227784E3EB6372d2D577D05b",
@@ -7872,6 +7872,13 @@
       "unbound": 0.0,
       "fractional": 0.0,
       "balance": "1.0000"
+    },
+    {
+      "address": "0x694c2bFC07e40762895D40dCc36E6529d78bF3d3",
+      "nft_count": 1,
+      "unbound": -1.0,
+      "fractional": 0.0,
+      "balance": "0.0000"
     },
     {
       "address": "0x6A0918fb24C3EbF07FD583823141E77E4F1A5373",
