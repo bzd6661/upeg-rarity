@@ -1,16 +1,16 @@
 {
-  "generated_at": "2026-07-17T19:37:06+00:00",
-  "block": 25554501,
+  "generated_at": "2026-07-17T21:20:06+00:00",
+  "block": 25555018,
   "total_holders": 1377,
-  "total_nfts": 6389,
-  "total_fractional": 271.3981,
+  "total_nfts": 6402,
+  "total_fractional": 270.8451,
   "items": [
     {
       "address": "0x9642b23Ed1E01Df1092B92641051881a322F5D4E",
-      "nft_count": 129,
-      "unbound": 0.7178,
-      "fractional": 0.7178,
-      "balance": "129.7178"
+      "nft_count": 126,
+      "unbound": -0.0355,
+      "fractional": -0.0355,
+      "balance": "125.9645"
     },
     {
       "address": "0x2fE4093c894749e596f458764c377bF4f1337b58",
@@ -244,6 +244,13 @@
       "balance": "42.5599"
     },
     {
+      "address": "0xb50814FBafeC6377950058e42E53cc03b27a299D",
+      "nft_count": 37,
+      "unbound": 2.4138,
+      "fractional": 0.4138,
+      "balance": "39.4138"
+    },
+    {
       "address": "0xD76820FE5921313E9771811d54282459EA3d8aD0",
       "nft_count": 37,
       "unbound": 6.0,
@@ -424,13 +431,6 @@
       "unbound": 5.162,
       "fractional": 0.162,
       "balance": "27.1620"
-    },
-    {
-      "address": "0xb50814FBafeC6377950058e42E53cc03b27a299D",
-      "nft_count": 21,
-      "unbound": 0.1866,
-      "fractional": 0.1866,
-      "balance": "21.1866"
     },
     {
       "address": "0x068fB56E556D08fd3aE095B4003479E035511935",
@@ -1756,13 +1756,6 @@
       "balance": "8.6481"
     },
     {
-      "address": "0xdc893995d488E5BE8eC8CA1Db92CBEc2a1ab0775",
-      "nft_count": 5,
-      "unbound": 0.5939,
-      "fractional": 0.5939,
-      "balance": "5.5939"
-    },
-    {
       "address": "0xc4DEb33F6821EE135B6F5c934f55E9CdF0adf18E",
       "nft_count": 5,
       "unbound": 0.5835,
@@ -1775,6 +1768,13 @@
       "unbound": 0.5798,
       "fractional": 0.5798,
       "balance": "5.5798"
+    },
+    {
+      "address": "0xdc893995d488E5BE8eC8CA1Db92CBEc2a1ab0775",
+      "nft_count": 5,
+      "unbound": 0.567,
+      "fractional": 0.567,
+      "balance": "5.5670"
     },
     {
       "address": "0xA1eC34eaeDEcC239BD6e4B772a3C82744472dE94",
