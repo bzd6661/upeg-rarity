@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-07-19T23:18:27+00:00",
-  "block": 25569946,
+  "generated_at": "2026-07-20T00:11:01+00:00",
+  "block": 25570231,
   "total_holders": 1381,
-  "total_nfts": 6415,
-  "total_fractional": 272.2784,
+  "total_nfts": 6421,
+  "total_fractional": 272.4226,
   "items": [
     {
       "address": "0x2fE4093c894749e596f458764c377bF4f1337b58",
@@ -111,6 +111,13 @@
       "balance": "73.8379"
     },
     {
+      "address": "0xfF8eAD891E901B38c5033597B4E525931dCA1b09",
+      "nft_count": 51,
+      "unbound": 0.3673,
+      "fractional": 0.3673,
+      "balance": "51.3673"
+    },
+    {
       "address": "0x300249612BA81974E4F9d288469297516cE36a09",
       "nft_count": 51,
       "unbound": 0.0,
@@ -147,17 +154,10 @@
     },
     {
       "address": "0x4Ff1D40fb7B56665bf95D8D8e3A5320dE46709A1",
-      "nft_count": 44,
-      "unbound": 2.5431,
-      "fractional": 0.5431,
-      "balance": "46.5431"
-    },
-    {
-      "address": "0xfF8eAD891E901B38c5033597B4E525931dCA1b09",
-      "nft_count": 44,
-      "unbound": 7.3673,
-      "fractional": 0.3673,
-      "balance": "51.3673"
+      "nft_count": 45,
+      "unbound": 2.6873,
+      "fractional": 0.6873,
+      "balance": "47.6873"
     },
     {
       "address": "0x32A22dBa0F4904f008ed817c8724BD5b3421865C",
@@ -503,13 +503,6 @@
       "balance": "19.5000"
     },
     {
-      "address": "0xc90BFAA5BaCbA2Df1dF0F0242484a6025Af570C8",
-      "nft_count": 19,
-      "unbound": 1.0392,
-      "fractional": 0.0392,
-      "balance": "20.0392"
-    },
-    {
       "address": "0x0d5103BbF5646eACd65F4deFF4a9eA34536Fd021",
       "nft_count": 19,
       "unbound": 0.0,
@@ -557,6 +550,13 @@
       "unbound": 9.6092,
       "fractional": 0.6092,
       "balance": "26.6092"
+    },
+    {
+      "address": "0xc90BFAA5BaCbA2Df1dF0F0242484a6025Af570C8",
+      "nft_count": 17,
+      "unbound": 0.0392,
+      "fractional": 0.0392,
+      "balance": "17.0392"
     },
     {
       "address": "0x147ab53C24A421923416adB21c12dB1ea8e80A22",
