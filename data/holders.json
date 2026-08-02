@@ -1,16 +1,16 @@
 {
-  "generated_at": "2026-08-02T13:36:47+00:00",
-  "block": 25667515,
-  "total_holders": 1426,
-  "total_nfts": 6877,
-  "total_fractional": 286.186,
+  "generated_at": "2026-08-02T15:15:01+00:00",
+  "block": 25668003,
+  "total_holders": 1420,
+  "total_nfts": 6862,
+  "total_fractional": 285.3481,
   "items": [
     {
-      "address": "0xFD7Db13B002F927891ab20EBbca890C1B5a459fD",
-      "nft_count": 121,
-      "unbound": 0.0,
-      "fractional": 0.0,
-      "balance": "121.0000"
+      "address": "0x73D21518b8e390A9D350bbb3CFAd99DBbF1a4927",
+      "nft_count": 122,
+      "unbound": 0.0443,
+      "fractional": 0.0443,
+      "balance": "122.0443"
     },
     {
       "address": "0x2fE4093c894749e596f458764c377bF4f1337b58",
@@ -20,11 +20,11 @@
       "balance": "119.4169"
     },
     {
-      "address": "0x73D21518b8e390A9D350bbb3CFAd99DBbF1a4927",
-      "nft_count": 116,
-      "unbound": 0.0443,
-      "fractional": 0.0443,
-      "balance": "116.0443"
+      "address": "0xFD7Db13B002F927891ab20EBbca890C1B5a459fD",
+      "nft_count": 119,
+      "unbound": 0.0,
+      "fractional": 0.0,
+      "balance": "119.0000"
     },
     {
       "address": "0x700AbbD6412c1f749A18657C124C5C43b9a4D960",
@@ -35,10 +35,10 @@
     },
     {
       "address": "0x9642b23Ed1E01Df1092B92641051881a322F5D4E",
-      "nft_count": 86,
-      "unbound": 0.8514,
-      "fractional": 0.8514,
-      "balance": "86.8514"
+      "nft_count": 80,
+      "unbound": 0.933,
+      "fractional": 0.933,
+      "balance": "80.9330"
     },
     {
       "address": "0x2dBFCBb0db05D2286E8C1b19138f0B436696a75e",
@@ -426,6 +426,13 @@
       "balance": "23.0074"
     },
     {
+      "address": "0x308c8EDCFf6468600dACA37fe33De0504CF0Af51",
+      "nft_count": 22,
+      "unbound": 6.8524,
+      "fractional": 0.8524,
+      "balance": "28.8524"
+    },
+    {
       "address": "0xEb270ef4770787fe9363F17a60d1A88aC7049c48",
       "nft_count": 22,
       "unbound": 5.162,
@@ -447,25 +454,11 @@
       "balance": "25.7795"
     },
     {
-      "address": "0x63C9c98C84fae150F0649560B94baCD42c467654",
-      "nft_count": 21,
-      "unbound": 0.4993,
-      "fractional": 0.4993,
-      "balance": "21.4993"
-    },
-    {
       "address": "0x068fB56E556D08fd3aE095B4003479E035511935",
       "nft_count": 21,
       "unbound": 0.1837,
       "fractional": 0.1837,
       "balance": "21.1837"
-    },
-    {
-      "address": "0xD76820FE5921313E9771811d54282459EA3d8aD0",
-      "nft_count": 21,
-      "unbound": 7.0875,
-      "fractional": 0.0875,
-      "balance": "28.0875"
     },
     {
       "address": "0xBfD0daA8322993229bf0b0568D09D041628ED593",
@@ -482,13 +475,6 @@
       "balance": "21.0000"
     },
     {
-      "address": "0x789e32B764942F7b7Ad322D7D4403590090c6976",
-      "nft_count": 21,
-      "unbound": -0.8266,
-      "fractional": -0.8266,
-      "balance": "20.1734"
-    },
-    {
       "address": "0x92Af2F323c4BBc791cF38c04272ff702B3E294Ad",
       "nft_count": 20,
       "unbound": 0.5048,
@@ -501,6 +487,13 @@
       "unbound": 11.4279,
       "fractional": 0.4279,
       "balance": "31.4279"
+    },
+    {
+      "address": "0x789e32B764942F7b7Ad322D7D4403590090c6976",
+      "nft_count": 20,
+      "unbound": 0.1734,
+      "fractional": 0.1734,
+      "balance": "20.1734"
     },
     {
       "address": "0x599138121c0E29FEd8a9ad985B620c054E989233",
@@ -629,13 +622,6 @@
       "balance": "36.7730"
     },
     {
-      "address": "0xE163430E606abd13f1796BD5e9e30724AE5EC857",
-      "nft_count": 16,
-      "unbound": 0.6473,
-      "fractional": 0.6473,
-      "balance": "16.6473"
-    },
-    {
       "address": "0x8dD66D34A93bb2e49C52Ca6FDC0AC0c05c9e2172",
       "nft_count": 16,
       "unbound": 1.5739,
@@ -669,6 +655,20 @@
       "unbound": 0.8942,
       "fractional": 0.8942,
       "balance": "15.8942"
+    },
+    {
+      "address": "0xE163430E606abd13f1796BD5e9e30724AE5EC857",
+      "nft_count": 15,
+      "unbound": 0.6473,
+      "fractional": 0.6473,
+      "balance": "15.6473"
+    },
+    {
+      "address": "0x63C9c98C84fae150F0649560B94baCD42c467654",
+      "nft_count": 15,
+      "unbound": 0.4993,
+      "fractional": 0.4993,
+      "balance": "15.4993"
     },
     {
       "address": "0xAE6783925Ee9d595C8C99C0Ec9a6e75f7319dBAC",
@@ -734,13 +734,6 @@
       "balance": "18.7870"
     },
     {
-      "address": "0x308c8EDCFf6468600dACA37fe33De0504CF0Af51",
-      "nft_count": 14,
-      "unbound": 6.3429,
-      "fractional": 0.3429,
-      "balance": "20.3429"
-    },
-    {
       "address": "0x5D33be419352dA9f0aDB13beB1513BF813AaD746",
       "nft_count": 14,
       "unbound": 0.1386,
@@ -753,6 +746,13 @@
       "unbound": 6.0979,
       "fractional": 0.0979,
       "balance": "20.0979"
+    },
+    {
+      "address": "0xD76820FE5921313E9771811d54282459EA3d8aD0",
+      "nft_count": 14,
+      "unbound": 0.0875,
+      "fractional": 0.0875,
+      "balance": "14.0875"
     },
     {
       "address": "0xf0ee2bc36aBA6fa0082eab59F693B7440bC5FdAa",
@@ -1107,9 +1107,9 @@
     {
       "address": "0x068565fD5914F3684bFCA8a22913A72d43C52277",
       "nft_count": 10,
-      "unbound": 0.4651,
-      "fractional": 0.4651,
-      "balance": "10.4651"
+      "unbound": 1.4569,
+      "fractional": 0.4569,
+      "balance": "11.4569"
     },
     {
       "address": "0xEB54E87C9af25C0Cb186Fdf5F27B861dBf20Fdb1",
@@ -1180,6 +1180,13 @@
       "unbound": 0.0028,
       "fractional": 0.0028,
       "balance": "10.0028"
+    },
+    {
+      "address": "0x014Af640c4b57b3BC3ADaEe1Ab9d9F1EEF25BE23",
+      "nft_count": 10,
+      "unbound": 0.0,
+      "fractional": 0.0,
+      "balance": "10.0000"
     },
     {
       "address": "0x659fbAd13C9d9A2e5e8C2a221166732C21047257",
@@ -1299,13 +1306,6 @@
       "unbound": 2.0019,
       "fractional": 0.0019,
       "balance": "11.0019"
-    },
-    {
-      "address": "0x014Af640c4b57b3BC3ADaEe1Ab9d9F1EEF25BE23",
-      "nft_count": 9,
-      "unbound": 0.0,
-      "fractional": 0.0,
-      "balance": "9.0000"
     },
     {
       "address": "0x18190867416e6CF6c85A263a5b8225f83aF3Ae7f",
@@ -1672,6 +1672,13 @@
       "balance": "10.0073"
     },
     {
+      "address": "0x4F0f398E1937CC5CC10f4D45a7a42b15E48E6090",
+      "nft_count": 7,
+      "unbound": 7.0,
+      "fractional": 0.0,
+      "balance": "14.0000"
+    },
+    {
       "address": "0x73775536C368e74e03F023aedd6452fC906Ad03a",
       "nft_count": 7,
       "unbound": 3.0,
@@ -1952,13 +1959,6 @@
       "balance": "7.0000"
     },
     {
-      "address": "0xCf2b7c6Bc98bfE0D6138A25a3b6162B51F75e05d",
-      "nft_count": 6,
-      "unbound": -1.4411,
-      "fractional": -0.4411,
-      "balance": "4.5589"
-    },
-    {
       "address": "0x6E92cF801174f0B5C2a85A5CA24fd3F4e9aFB65A",
       "nft_count": 5,
       "unbound": 2.9375,
@@ -2141,13 +2141,6 @@
       "balance": "5.0000"
     },
     {
-      "address": "0x0Ee6EFB7aafA3796ff7b44FBf524CcFEda2D8052",
-      "nft_count": 5,
-      "unbound": 0.0,
-      "fractional": 0.0,
-      "balance": "5.0000"
-    },
-    {
       "address": "0x18B849dA02eD88532397Cf4FCcb707d1240086C2",
       "nft_count": 5,
       "unbound": 0.0,
@@ -2246,6 +2239,13 @@
       "balance": "4.6330"
     },
     {
+      "address": "0xCf2b7c6Bc98bfE0D6138A25a3b6162B51F75e05d",
+      "nft_count": 4,
+      "unbound": 0.5589,
+      "fractional": 0.5589,
+      "balance": "4.5589"
+    },
+    {
       "address": "0x01d37Ea7BC7Fc3573992bB4f6FfedC63E2A7C899",
       "nft_count": 4,
       "unbound": 3.543,
@@ -2258,13 +2258,6 @@
       "unbound": 0.5094,
       "fractional": 0.5094,
       "balance": "4.5094"
-    },
-    {
-      "address": "0xdc893995d488E5BE8eC8CA1Db92CBEc2a1ab0775",
-      "nft_count": 4,
-      "unbound": 0.4931,
-      "fractional": 0.4931,
-      "balance": "4.4931"
     },
     {
       "address": "0xeDFCae3C1B0c4D4c8e484A0e9707a18B685627F6",
@@ -2391,6 +2384,13 @@
       "unbound": 0.1604,
       "fractional": 0.1604,
       "balance": "4.1604"
+    },
+    {
+      "address": "0xdc893995d488E5BE8eC8CA1Db92CBEc2a1ab0775",
+      "nft_count": 4,
+      "unbound": 1.1587,
+      "fractional": 0.1587,
+      "balance": "5.1587"
     },
     {
       "address": "0x92285e6BD0cDb2Cb00b98E3fBC01b029C70aEdD0",
@@ -2596,13 +2596,6 @@
       "balance": "4.0000"
     },
     {
-      "address": "0xbBE30B192638038EF9Ef3FFe7238D98c679360Be",
-      "nft_count": 4,
-      "unbound": -2.0,
-      "fractional": 0.0,
-      "balance": "2.0000"
-    },
-    {
       "address": "0xbCEb010A33b6f2164E4A8A762B37AEbDcCE3E9Da",
       "nft_count": 4,
       "unbound": 0.0,
@@ -2687,6 +2680,13 @@
       "balance": "3.8500"
     },
     {
+      "address": "0x0601F5F53064Bd2e4e46a58609D227A1eF971d76",
+      "nft_count": 3,
+      "unbound": 3.8223,
+      "fractional": 0.8223,
+      "balance": "6.8223"
+    },
+    {
       "address": "0x8749361b3C1BC2BB3FF2612282978E348ba5d835",
       "nft_count": 3,
       "unbound": 0.8111,
@@ -2706,13 +2706,6 @@
       "unbound": 0.7992,
       "fractional": 0.7992,
       "balance": "3.7992"
-    },
-    {
-      "address": "0x47B54b3aFCE78b058D01701EA288a4b730475187",
-      "nft_count": 3,
-      "unbound": 3.7969,
-      "fractional": 0.7969,
-      "balance": "6.7969"
     },
     {
       "address": "0xb18a24d39C35Edb01fb0121316D3B64129c92059",
@@ -2876,6 +2869,13 @@
       "balance": "3.4022"
     },
     {
+      "address": "0x47B54b3aFCE78b058D01701EA288a4b730475187",
+      "nft_count": 3,
+      "unbound": 3.3969,
+      "fractional": 0.3969,
+      "balance": "6.3969"
+    },
+    {
       "address": "0x5cCeF1BDa7712349B5835eaC25bbE434C3e17E59",
       "nft_count": 3,
       "unbound": 4.3944,
@@ -2944,6 +2944,13 @@
       "unbound": 0.2856,
       "fractional": 0.2856,
       "balance": "3.2856"
+    },
+    {
+      "address": "0xDf5C81F372Ca0813956b133786cb3622a320bA66",
+      "nft_count": 3,
+      "unbound": 5.2573,
+      "fractional": 0.2573,
+      "balance": "8.2573"
     },
     {
       "address": "0x80756A45f929682c5f410735098B854921F8BF30",
@@ -3128,13 +3135,6 @@
       "balance": "3.0179"
     },
     {
-      "address": "0xDf5C81F372Ca0813956b133786cb3622a320bA66",
-      "nft_count": 3,
-      "unbound": 8.0097,
-      "fractional": 0.0097,
-      "balance": "11.0097"
-    },
-    {
       "address": "0x444Dd5F2C4813031C0047128283b0895D5Db0D06",
       "nft_count": 3,
       "unbound": 0.0089,
@@ -3147,6 +3147,13 @@
       "unbound": 0.0002,
       "fractional": 0.0002,
       "balance": "3.0002"
+    },
+    {
+      "address": "0x0Ee6EFB7aafA3796ff7b44FBf524CcFEda2D8052",
+      "nft_count": 3,
+      "unbound": 0.0,
+      "fractional": 0.0,
+      "balance": "3.0000"
     },
     {
       "address": "0x3056B7039deb4347CA9AB2aBD7b5785fcDCc0ebf",
@@ -3259,13 +3266,6 @@
       "unbound": 0.9975,
       "fractional": 0.9975,
       "balance": "2.9975"
-    },
-    {
-      "address": "0x220095C400AF105d371A63A4baCe9563e55D4f76",
-      "nft_count": 2,
-      "unbound": 1.9902,
-      "fractional": 0.9902,
-      "balance": "3.9902"
     },
     {
       "address": "0x154AbBa3F4c1f09Ae0c90Acf971f0C01CB07BCa1",
@@ -3499,25 +3499,11 @@
       "balance": "2.5709"
     },
     {
-      "address": "0x0601F5F53064Bd2e4e46a58609D227A1eF971d76",
-      "nft_count": 2,
-      "unbound": 1.5686,
-      "fractional": 0.5686,
-      "balance": "3.5686"
-    },
-    {
       "address": "0x3F2550Ee0568646c2F06C2Ec6Cb8Af107E10A849",
       "nft_count": 2,
       "unbound": 3.5572,
       "fractional": 0.5572,
       "balance": "5.5572"
-    },
-    {
-      "address": "0x76D12eCeEf223FF0451F09aCBb989b9D46eA4CA9",
-      "nft_count": 2,
-      "unbound": 0.5546,
-      "fractional": 0.5546,
-      "balance": "2.5546"
     },
     {
       "address": "0xacBFCa12aca1613042807eC8a63868923f9f58b2",
@@ -3777,13 +3763,6 @@
       "unbound": 0.2442,
       "fractional": 0.2442,
       "balance": "2.2442"
-    },
-    {
-      "address": "0x17b9c08Ae7f849D33E84b77cF043f339841A6D8A",
-      "nft_count": 2,
-      "unbound": 0.2268,
-      "fractional": 0.2268,
-      "balance": "2.2268"
     },
     {
       "address": "0xdceEDFC73CFa846Ec64e67491DfE7C9047476827",
@@ -4395,6 +4374,13 @@
       "balance": "2.0000"
     },
     {
+      "address": "0xbBE30B192638038EF9Ef3FFe7238D98c679360Be",
+      "nft_count": 2,
+      "unbound": 0.0,
+      "fractional": 0.0,
+      "balance": "2.0000"
+    },
+    {
       "address": "0xbF79b73A1ee8A176bF659735dEd3D90d5C3069Ee",
       "nft_count": 2,
       "unbound": 0.0,
@@ -4428,6 +4414,20 @@
       "unbound": 0.0,
       "fractional": 0.0,
       "balance": "2.0000"
+    },
+    {
+      "address": "0x220095C400AF105d371A63A4baCe9563e55D4f76",
+      "nft_count": 2,
+      "unbound": -0.0098,
+      "fractional": -0.0098,
+      "balance": "1.9902"
+    },
+    {
+      "address": "0xc0596f75016ee2a9c569814d1542D9Db859922e7",
+      "nft_count": 1,
+      "unbound": 1.9953,
+      "fractional": 0.9953,
+      "balance": "2.9953"
     },
     {
       "address": "0xE87e4F1516577359297adA62e8A33268B4220CaD",
@@ -4521,18 +4521,18 @@
       "balance": "1.9067"
     },
     {
-      "address": "0xfc3A7Ca9b00CE73f91db154DEd5E8e84cb712d07",
-      "nft_count": 1,
-      "unbound": 0.9042,
-      "fractional": 0.9042,
-      "balance": "1.9042"
-    },
-    {
       "address": "0x55F5FF187A8EF29cE09B26D5408240a809b2DaE3",
       "nft_count": 1,
       "unbound": 1.8975,
       "fractional": 0.8975,
       "balance": "2.8975"
+    },
+    {
+      "address": "0x10038AB9b4Cc75Fbda74C0CD261bC2662B1B0cb9",
+      "nft_count": 1,
+      "unbound": 0.895,
+      "fractional": 0.895,
+      "balance": "1.8950"
     },
     {
       "address": "0xA754BF80C5750C2210B3eB2b23c9079aabf74275",
@@ -4612,6 +4612,13 @@
       "balance": "1.8080"
     },
     {
+      "address": "0xf9fd0AB1D240Fcb2eECB12E262D30611bE70f90f",
+      "nft_count": 1,
+      "unbound": 1.7999,
+      "fractional": 0.7999,
+      "balance": "2.7999"
+    },
+    {
       "address": "0x9Dc82cA17F52dc4877dcEC017CBB462ADc526054",
       "nft_count": 1,
       "unbound": 0.7988,
@@ -4682,20 +4689,6 @@
       "balance": "2.7536"
     },
     {
-      "address": "0xf9fd0AB1D240Fcb2eECB12E262D30611bE70f90f",
-      "nft_count": 1,
-      "unbound": 2.7499,
-      "fractional": 0.7499,
-      "balance": "3.7499"
-    },
-    {
-      "address": "0xFB41d493cEf4aaAdE35F3Ec053Cf448031b3d484",
-      "nft_count": 1,
-      "unbound": 0.7498,
-      "fractional": 0.7498,
-      "balance": "1.7498"
-    },
-    {
       "address": "0xc44907a661495e60f91d86de97c393089C783E0B",
       "nft_count": 1,
       "unbound": 2.7467,
@@ -4729,13 +4722,6 @@
       "unbound": 0.719,
       "fractional": 0.719,
       "balance": "1.7190"
-    },
-    {
-      "address": "0x539E677A5c3447a6Cde5b209867dA8c766Add1d3",
-      "nft_count": 1,
-      "unbound": 0.715,
-      "fractional": 0.715,
-      "balance": "1.7150"
     },
     {
       "address": "0x4752250d3a673146e904ba899dfB2696a1be69C1",
@@ -4878,13 +4864,6 @@
       "balance": "1.6181"
     },
     {
-      "address": "0xFf5208Cd3ff2e547246198C68A8c06B9fbDC81f1",
-      "nft_count": 1,
-      "unbound": 0.6118,
-      "fractional": 0.6118,
-      "balance": "1.6118"
-    },
-    {
       "address": "0xDA8E26B87c88854B4B6fcF40AFa102506a16a90F",
       "nft_count": 1,
       "unbound": 7.6114,
@@ -4904,13 +4883,6 @@
       "unbound": 1.5747,
       "fractional": 0.5747,
       "balance": "2.5747"
-    },
-    {
-      "address": "0x84bd1038F6C5DE15919a0885a54D15946Be7395d",
-      "nft_count": 1,
-      "unbound": 0.567,
-      "fractional": 0.567,
-      "balance": "1.5670"
     },
     {
       "address": "0x1b733F5d0da49B13151915f7Fb50e3Fff7D4112c",
@@ -4976,6 +4948,13 @@
       "balance": "1.5063"
     },
     {
+      "address": "0xfc3A7Ca9b00CE73f91db154DEd5E8e84cb712d07",
+      "nft_count": 1,
+      "unbound": 0.5042,
+      "fractional": 0.5042,
+      "balance": "1.5042"
+    },
+    {
       "address": "0x3F685A9063a04028D0bCfEb994C8Ca7779443805",
       "nft_count": 1,
       "unbound": 0.5,
@@ -4988,13 +4967,6 @@
       "unbound": 0.5,
       "fractional": 0.5,
       "balance": "1.5000"
-    },
-    {
-      "address": "0x10038AB9b4Cc75Fbda74C0CD261bC2662B1B0cb9",
-      "nft_count": 1,
-      "unbound": 0.495,
-      "fractional": 0.495,
-      "balance": "1.4950"
     },
     {
       "address": "0x3227Da63bCC2D057Fde3eAFEbB07de7B8a66a9C5",
@@ -5116,13 +5088,6 @@
       "balance": "4.3732"
     },
     {
-      "address": "0x7672520Af2851BC1C1E2bFA61F9Ff337173Ddd16",
-      "nft_count": 1,
-      "unbound": 0.3633,
-      "fractional": 0.3633,
-      "balance": "1.3633"
-    },
-    {
       "address": "0x5d253CCe1472cA8E56c1eBFCC6F56E5EfD315ac4",
       "nft_count": 1,
       "unbound": 1.357,
@@ -5233,6 +5198,13 @@
       "unbound": 1.2646,
       "fractional": 0.2646,
       "balance": "2.2646"
+    },
+    {
+      "address": "0x17b9c08Ae7f849D33E84b77cF043f339841A6D8A",
+      "nft_count": 1,
+      "unbound": 0.2526,
+      "fractional": 0.2526,
+      "balance": "1.2526"
     },
     {
       "address": "0x7385f8b5ab1303C8E476d371973DB768F1a43Bb4",
@@ -5382,6 +5354,13 @@
       "balance": "2.1627"
     },
     {
+      "address": "0x539E677A5c3447a6Cde5b209867dA8c766Add1d3",
+      "nft_count": 1,
+      "unbound": 1.1619,
+      "fractional": 0.1619,
+      "balance": "2.1619"
+    },
+    {
       "address": "0xf3e84cdd50B2dd307B8cFdD85074c515D846B078",
       "nft_count": 1,
       "unbound": 0.1583,
@@ -5457,6 +5436,13 @@
       "unbound": 1.1418,
       "fractional": 0.1418,
       "balance": "2.1418"
+    },
+    {
+      "address": "0xE70FDf96E205ADEDFE0B8A891e0d87F393Ca11B6",
+      "nft_count": 1,
+      "unbound": 0.1417,
+      "fractional": 0.1417,
+      "balance": "1.1417"
     },
     {
       "address": "0xee67b29f25a44A1cF65D3500aFCF29aF25033A67",
@@ -6446,11 +6432,11 @@
       "balance": "1.0152"
     },
     {
-      "address": "0xE70FDf96E205ADEDFE0B8A891e0d87F393Ca11B6",
+      "address": "0xFB41d493cEf4aaAdE35F3Ec053Cf448031b3d484",
       "nft_count": 1,
-      "unbound": 0.0146,
-      "fractional": 0.0146,
-      "balance": "1.0146"
+      "unbound": 1.0147,
+      "fractional": 0.0147,
+      "balance": "2.0147"
     },
     {
       "address": "0xDBF6CF4A6922964e4f7aFdc8a622635de704A3B0",
@@ -6843,13 +6829,6 @@
       "unbound": 0.001,
       "fractional": 0.001,
       "balance": "1.0010"
-    },
-    {
-      "address": "0xc0596f75016ee2a9c569814d1542D9Db859922e7",
-      "nft_count": 1,
-      "unbound": 1.001,
-      "fractional": 0.001,
-      "balance": "2.0010"
     },
     {
       "address": "0x0048EB5aC75dfE5448aCDfc76A49DE7d940056E8",
@@ -8007,13 +7986,6 @@
       "balance": "1.0000"
     },
     {
-      "address": "0x5cD3C4437684C17FA26b1629096C3035802B1252",
-      "nft_count": 1,
-      "unbound": 0.0,
-      "fractional": 0.0,
-      "balance": "1.0000"
-    },
-    {
       "address": "0x60F6765Ce3606a4A01905161E858558BDaac73bd",
       "nft_count": 1,
       "unbound": 0.0,
@@ -8938,13 +8910,6 @@
       "balance": "1.0000"
     },
     {
-      "address": "0xBEF358Dd02a16d0dab3BC18acFa2d98c16cEd37D",
-      "nft_count": 1,
-      "unbound": 0.0,
-      "fractional": 0.0,
-      "balance": "1.0000"
-    },
-    {
       "address": "0xBEef708f4Fc7c8c84Ae341088A545c23Ca93550d",
       "nft_count": 1,
       "unbound": 0.0,
@@ -9716,13 +9681,6 @@
     },
     {
       "address": "0xdA5Ac49FDF40985b58bfD6F700fC71228Cf753b9",
-      "nft_count": 1,
-      "unbound": 0.0,
-      "fractional": 0.0,
-      "balance": "1.0000"
-    },
-    {
-      "address": "0xdE2217Ce2a15d9b72B651CE3Ce4161A69937d551",
       "nft_count": 1,
       "unbound": 0.0,
       "fractional": 0.0,
