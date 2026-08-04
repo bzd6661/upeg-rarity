@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-08-04T18:50:14+00:00",
-  "block": 25683432,
-  "total_holders": 1432,
-  "total_nfts": 6913,
-  "total_fractional": 280.146,
+  "generated_at": "2026-08-04T20:37:33+00:00",
+  "block": 25683968,
+  "total_holders": 1431,
+  "total_nfts": 6908,
+  "total_fractional": 280.4819,
   "items": [
     {
       "address": "0x73D21518b8e390A9D350bbb3CFAd99DBbF1a4927",
@@ -1665,18 +1665,18 @@
       "balance": "8.1013"
     },
     {
+      "address": "0xdc893995d488E5BE8eC8CA1Db92CBEc2a1ab0775",
+      "nft_count": 7,
+      "unbound": 1.1008,
+      "fractional": 0.1008,
+      "balance": "8.1008"
+    },
+    {
       "address": "0x74B859044A52e1aC8614bCC54595ddBF31999B19",
       "nft_count": 7,
       "unbound": 0.0537,
       "fractional": 0.0537,
       "balance": "7.0537"
-    },
-    {
-      "address": "0xdc893995d488E5BE8eC8CA1Db92CBEc2a1ab0775",
-      "nft_count": 7,
-      "unbound": 1.0139,
-      "fractional": 0.0139,
-      "balance": "8.0139"
     },
     {
       "address": "0xdA048C2845E7696cEB805FAF116F036a046A73f1",
@@ -1966,13 +1966,6 @@
       "balance": "5.9531"
     },
     {
-      "address": "0x71Fc074d548e91F52629dbd21c83485442DDB54c",
-      "nft_count": 5,
-      "unbound": 1.8173,
-      "fractional": 0.8173,
-      "balance": "6.8173"
-    },
-    {
       "address": "0x0D73830630B17ec05E7daBd8d4d3C211f4a94087",
       "nft_count": 5,
       "unbound": 0.81,
@@ -2041,6 +2034,13 @@
       "unbound": 5.2813,
       "fractional": 0.2813,
       "balance": "10.2813"
+    },
+    {
+      "address": "0x71Fc074d548e91F52629dbd21c83485442DDB54c",
+      "nft_count": 5,
+      "unbound": 1.2173,
+      "fractional": 0.2173,
+      "balance": "6.2173"
     },
     {
       "address": "0x6e9Ab9833aDce5E622d32f4625F9605aC2C53111",
@@ -2398,13 +2398,6 @@
       "unbound": 0.1315,
       "fractional": 0.1315,
       "balance": "4.1315"
-    },
-    {
-      "address": "0xA194184Cd1EC10ac76e2ac7fA902bCE390Fb6d75",
-      "nft_count": 4,
-      "unbound": 0.124,
-      "fractional": 0.124,
-      "balance": "4.1240"
     },
     {
       "address": "0xf73e53c262C541a7E0b5f87C4aFd81084B8652D2",
@@ -3128,13 +3121,6 @@
       "balance": "3.0000"
     },
     {
-      "address": "0x5aB2d1f5069dd2f9aeEC3b0A8e923B1cdbe7Fc44",
-      "nft_count": 3,
-      "unbound": 0.0,
-      "fractional": 0.0,
-      "balance": "3.0000"
-    },
-    {
       "address": "0x69364CC6bc5d5b11B2C63Bbd2402e33b3D34bCf9",
       "nft_count": 3,
       "unbound": 0.0,
@@ -3143,13 +3129,6 @@
     },
     {
       "address": "0x704438a88aDa0a305A250Faff36AadD9F4813232",
-      "nft_count": 3,
-      "unbound": 0.0,
-      "fractional": 0.0,
-      "balance": "3.0000"
-    },
-    {
-      "address": "0x8a02495884a9820d3239b80f982385C8F74b8B66",
       "nft_count": 3,
       "unbound": 0.0,
       "fractional": 0.0,
@@ -3259,6 +3238,13 @@
       "unbound": 0.9846,
       "fractional": 0.9846,
       "balance": "2.9846"
+    },
+    {
+      "address": "0xA194184Cd1EC10ac76e2ac7fA902bCE390Fb6d75",
+      "nft_count": 2,
+      "unbound": 0.983,
+      "fractional": 0.983,
+      "balance": "2.9830"
     },
     {
       "address": "0x9997d7120862CEda99aB4a1c43698e0941F87b20",
@@ -4270,6 +4256,20 @@
     },
     {
       "address": "0x4100C2A7525B80DAB93f49C627d672237C9ae79e",
+      "nft_count": 2,
+      "unbound": 0.0,
+      "fractional": 0.0,
+      "balance": "2.0000"
+    },
+    {
+      "address": "0x5aB2d1f5069dd2f9aeEC3b0A8e923B1cdbe7Fc44",
+      "nft_count": 2,
+      "unbound": 0.0,
+      "fractional": 0.0,
+      "balance": "2.0000"
+    },
+    {
+      "address": "0x8a02495884a9820d3239b80f982385C8F74b8B66",
       "nft_count": 2,
       "unbound": 0.0,
       "fractional": 0.0,
@@ -6563,13 +6563,6 @@
       "unbound": 0.0102,
       "fractional": 0.0102,
       "balance": "1.0102"
-    },
-    {
-      "address": "0x2De9481BAE36573Ea2A7b949260470C6C044867c",
-      "nft_count": 1,
-      "unbound": 0.01,
-      "fractional": 0.01,
-      "balance": "1.0100"
     },
     {
       "address": "0x3131DcaCCE9575BeD8a16068377DA99e7284f99e",
