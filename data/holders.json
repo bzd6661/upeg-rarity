@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-08-08T22:53:43+00:00",
-  "block": 25713311,
-  "total_holders": 1385,
+  "generated_at": "2026-08-08T23:54:25+00:00",
+  "block": 25713615,
+  "total_holders": 1386,
   "total_nfts": 6822,
-  "total_fractional": 265.0917,
+  "total_fractional": 265.7656,
   "items": [
     {
       "address": "0xFD7Db13B002F927891ab20EBbca890C1B5a459fD",
@@ -3079,13 +3079,6 @@
       "balance": "3.9998"
     },
     {
-      "address": "0x4377135bc8B93D806776091B9e2bFEA32617Bc1b",
-      "nft_count": 2,
-      "unbound": 3.9893,
-      "fractional": 0.9893,
-      "balance": "5.9893"
-    },
-    {
       "address": "0x154AbBa3F4c1f09Ae0c90Acf971f0C01CB07BCa1",
       "nft_count": 2,
       "unbound": 0.9846,
@@ -3196,6 +3189,13 @@
       "unbound": 1.8049,
       "fractional": 0.8049,
       "balance": "3.8049"
+    },
+    {
+      "address": "0x4377135bc8B93D806776091B9e2bFEA32617Bc1b",
+      "nft_count": 2,
+      "unbound": 4.7877,
+      "fractional": 0.7877,
+      "balance": "6.7877"
     },
     {
       "address": "0x043ff1760346BEfbb304844bC87C8830052Ff26A",
@@ -4325,6 +4325,13 @@
       "balance": "1.7593"
     },
     {
+      "address": "0xA43711F5DCc3559a1E07eC124fd167e26c9BaD43",
+      "nft_count": 1,
+      "unbound": 0.7568,
+      "fractional": 0.7568,
+      "balance": "1.7568"
+    },
+    {
       "address": "0x2513887967b502e8005d66FbbFB9040AC704d62a",
       "nft_count": 1,
       "unbound": 1.7536,
@@ -5037,13 +5044,6 @@
       "unbound": 2.2069,
       "fractional": 0.2069,
       "balance": "3.2069"
-    },
-    {
-      "address": "0xA43711F5DCc3559a1E07eC124fd167e26c9BaD43",
-      "nft_count": 1,
-      "unbound": 1.2068,
-      "fractional": 0.2068,
-      "balance": "2.2068"
     },
     {
       "address": "0x75874Edda73Ad5109D09a56d51E1fB5DfD50368b",
@@ -9699,6 +9699,13 @@
       "unbound": 0.0,
       "fractional": 0.0,
       "balance": "1.0000"
+    },
+    {
+      "address": "0x1528BB678E18A72A718328d9Ebd8F3390716A737",
+      "nft_count": 0,
+      "unbound": 4.3255,
+      "fractional": 0.3255,
+      "balance": "4.3255"
     }
   ]
 }
