@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-08-24T10:59:02+00:00",
-  "block": 25824550,
+  "generated_at": "2026-08-24T11:51:24+00:00",
+  "block": 25824809,
   "total_holders": 1366,
-  "total_nfts": 6836,
-  "total_fractional": 264.0187,
+  "total_nfts": 6825,
+  "total_fractional": 264.4967,
   "items": [
     {
       "address": "0x73D21518b8e390A9D350bbb3CFAd99DBbF1a4927",
@@ -307,13 +307,6 @@
       "balance": "33.6433"
     },
     {
-      "address": "0xA862309d0E72b69276987257D723d377504555Fd",
-      "nft_count": 30,
-      "unbound": 0.4748,
-      "fractional": 0.4748,
-      "balance": "30.4748"
-    },
-    {
       "address": "0x20a2Fd0B4f54c9bc0Fa9a3004339C01831D58433",
       "nft_count": 30,
       "unbound": 2.2577,
@@ -531,6 +524,13 @@
       "balance": "20.5048"
     },
     {
+      "address": "0xA862309d0E72b69276987257D723d377504555Fd",
+      "nft_count": 20,
+      "unbound": 0.4748,
+      "fractional": 0.4748,
+      "balance": "20.4748"
+    },
+    {
       "address": "0x068fB56E556D08fd3aE095B4003479E035511935",
       "nft_count": 20,
       "unbound": 0.1837,
@@ -666,9 +666,9 @@
     {
       "address": "0xdc893995d488E5BE8eC8CA1Db92CBEc2a1ab0775",
       "nft_count": 16,
-      "unbound": 1.6807,
-      "fractional": 0.6807,
-      "balance": "17.6807"
+      "unbound": 1.7325,
+      "fractional": 0.7325,
+      "balance": "17.7325"
     },
     {
       "address": "0xB1A46b36C8b45B98137D9dB0012f54f24112f13D",
@@ -6600,13 +6600,6 @@
       "balance": "1.0006"
     },
     {
-      "address": "0x12a2757Fbd8b51cc5Eb57FeB4b70905f6187eC7B",
-      "nft_count": 1,
-      "unbound": 1.0005,
-      "fractional": 0.0005,
-      "balance": "2.0005"
-    },
-    {
       "address": "0x338E86a4bbC0A37ABFc1E8B3ff217129067a3B3D",
       "nft_count": 1,
       "unbound": 0.0005,
@@ -9566,6 +9559,13 @@
       "unbound": 0.0,
       "fractional": 0.0,
       "balance": "1.0000"
+    },
+    {
+      "address": "0x50C62aE8B9C7b202a8B716109C633783eeE61322",
+      "nft_count": 0,
+      "unbound": 1.4267,
+      "fractional": 0.4267,
+      "balance": "1.4267"
     }
   ]
 }
